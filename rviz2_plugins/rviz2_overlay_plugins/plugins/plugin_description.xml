@@ -7,5 +7,9 @@
          type="rviz_plugins::ImageOverlayDisplay"
          base_class_type="rviz_common::Display">
   </class>
+  <class name="rviz_plugins/Plotter2d"
+         type="rviz_plugins::Plotter2dOverlayDisplay"
+         base_class_type="rviz_common::Display">
+  </class>
 </library>
 
