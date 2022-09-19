@@ -47,6 +47,7 @@ public:
 
 private Q_SLOTS:
   void updateVisualization();
+  void updateBufferLength();
 
 protected:
   void update(float wall_dt, float ros_dt) override;
@@ -56,13 +57,19 @@ protected:
   rviz_common::properties::IntProperty * property_top_;
   rviz_common::properties::IntProperty * property_width_;
   rviz_common::properties::IntProperty * property_height_;
+  rviz_common::properties::IntProperty * property_font_size_;
+  rviz_common::properties::IntProperty * property_line_thick_;
+  rviz_common::properties::IntProperty * property_buffer_length_;
+
+  rviz_common::properties::BoolProperty * property_show_caption_;
   rviz_common::properties::StringProperty * property_topic_name_;
   rviz_common::properties::ColorProperty * property_fg_color_;
   rviz_common::properties::ColorProperty * property_bg_color_;
+
   rviz_common::properties::FloatProperty * property_fg_alpha_;
   rviz_common::properties::FloatProperty * property_bg_alpha_;
-  rviz_common::properties::IntProperty * property_font_size_;
-  rviz_common::properties::IntProperty * property_line_thick_;
+  rviz_common::properties::FloatProperty * property_update_interval_;
+
   QImage hud_;
 
 private:
@@ -71,6 +78,12 @@ private:
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr sub_float32_;
   std_msgs::msg::Float32::ConstSharedPtr last_msg_ptr_ = nullptr;
   std::string topic_name_;
+
+  float update_interval_;
+  float last_time_;
+
+  float max_value_{0.f};
+  float min_value_{0.f};
 };
 }  // namespace rviz_plugins
 

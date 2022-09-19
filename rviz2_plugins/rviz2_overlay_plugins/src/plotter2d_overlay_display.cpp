@@ -26,8 +26,6 @@ namespace rviz_plugins
 {
 Plotter2dOverlayDisplay::Plotter2dOverlayDisplay()
 {
-  data_buffer_.resize(100);
-
   using namespace rviz_common::properties;
 
   property_topic_name_ =
@@ -53,6 +51,9 @@ Plotter2dOverlayDisplay::Plotter2dOverlayDisplay()
     "Background Color", QColor(50, 50, 50), "Background Color", this, SLOT(updateVisualization()),
     this);
 
+  property_show_caption_ =
+    new BoolProperty("Show Caption", true, "Show Caption", this, SLOT(updateVisualization()), this);
+
   property_fg_alpha_ = new FloatProperty(
     "Foregrund Alpha", 0.8, "Foreground Alpha", this, SLOT(updateVisualization()), this);
   property_fg_alpha_->setMin(0.0);
@@ -63,6 +64,11 @@ Plotter2dOverlayDisplay::Plotter2dOverlayDisplay()
   property_bg_alpha_->setMin(0.0);
   property_bg_alpha_->setMax(1.0);
 
+  property_update_interval_ = new FloatProperty(
+    "Update Interval", 0.05, "Update Interval", this, SLOT(updateVisualization()), this);
+  property_update_interval_->setMin(0.0);
+  property_update_interval_->setMax(100.0);
+
   property_font_size_ =
     new IntProperty("Font Size", 12, "Font Size", this, SLOT(updateVisualization()));
   property_font_size_->setMin(0);
@@ -70,6 +76,12 @@ Plotter2dOverlayDisplay::Plotter2dOverlayDisplay()
   property_line_thick_ =
     new IntProperty("Line Thick", 2, "Line Thick", this, SLOT(updateVisualization()));
   property_line_thick_->setMin(1);
+
+  property_buffer_length_ =
+    new IntProperty("Buffer Length", 100, "buffer Length", this, SLOT(updateBufferLength()));
+  property_buffer_length_->setMin(1);
+
+  data_buffer_.resize(property_buffer_length_->getInt());
 }
 
 Plotter2dOverlayDisplay::~Plotter2dOverlayDisplay()
@@ -77,6 +89,12 @@ Plotter2dOverlayDisplay::~Plotter2dOverlayDisplay()
   if (initialized()) {
     overlay_->hide();
   }
+}
+
+void Plotter2dOverlayDisplay::updateBufferLength()
+{
+  data_buffer_.resize(property_buffer_length_->getInt());
+  updateVisualization();
 }
 
 void Plotter2dOverlayDisplay::onInitialize()
@@ -127,15 +145,23 @@ void Plotter2dOverlayDisplay::processMessage(const std_msgs::msg::Float32::Const
 {
   if (!isEnabled()) return;
 
-  data_buffer_.push_back(msg_ptr->data);
   last_msg_ptr_ = msg_ptr;
+
+  max_value_ = *std::max_element(data_buffer_.begin(), data_buffer_.end());
+  min_value_ = *std::min_element(data_buffer_.begin(), data_buffer_.end());
+
+  max_value_ = std::max(last_msg_ptr_->data, max_value_);
+  min_value_ = std::min(last_msg_ptr_->data, min_value_);
+  if (std::abs(max_value_ - min_value_) < 1e-6f) {
+    max_value_ += 0.5f;
+    min_value_ -= 0.5f;
+  }
 
   queueRender();
 }
 
 void Plotter2dOverlayDisplay::update(float wall_dt, float ros_dt)
 {
-  (void)wall_dt;
   (void)ros_dt;
 
   std::string current_topic_name = property_topic_name_->getStdString();
@@ -144,20 +170,23 @@ void Plotter2dOverlayDisplay::update(float wall_dt, float ros_dt)
     subscribe();
   }
 
+  if (wall_dt + last_time_ > update_interval_) {
+    last_time_ = 0.f;
+    if (last_msg_ptr_)
+      data_buffer_.push_back(last_msg_ptr_->data);
+    else
+      data_buffer_.push_back(0);
+  } else {
+    last_time_ += wall_dt;
+  }
   updateVisualization();
 }
 
 void Plotter2dOverlayDisplay::updateVisualization()
 {
-  if (!last_msg_ptr_) return;
+  update_interval_ = property_update_interval_->getFloat();
 
   jsk_rviz_plugins::ScopedPixelBuffer buffer = overlay_->getBuffer();
-
-  {
-    overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());
-    overlay_->setPosition(property_left_->getInt(), property_top_->getInt());
-    overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
-  }
 
   // Fill background
   {
@@ -165,6 +194,12 @@ void Plotter2dOverlayDisplay::updateVisualization()
     background_color.setAlpha(255 * property_bg_alpha_->getFloat());
     hud_ = buffer.getQImage(*overlay_);
     hud_.fill(background_color);
+  }
+
+  {
+    overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());
+    overlay_->setPosition(property_left_->getInt(), property_top_->getInt());
+    overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
   }
 
   const int font_size_ = property_font_size_->getInt();
@@ -191,11 +226,12 @@ void Plotter2dOverlayDisplay::updateVisualization()
   const int h = overlay_->getTextureHeight() - caption_offset;
 
   // Draw topic name
-  {
+  if (property_show_caption_->getBool()) {
     const std::string text = property_topic_name_->getStdString();
-    painter.drawText(0, h, w, caption_offset, Qt::AlignHCenter | Qt::AlignVCenter, {text.c_str()});
+    painter.drawText(0, h, w, caption_offset, Qt::AlignCenter, text.c_str());
   }
 
+  // Draw boarder
   {
     painter.drawLine(0, 0, 0, h);
     painter.drawLine(0, h, w, h);
@@ -203,32 +239,42 @@ void Plotter2dOverlayDisplay::updateVisualization()
     painter.drawLine(w, 0, 0, 0);
   }
 
-  if (!data_buffer_.empty()) {
-    const double max_value = *std::max_element(data_buffer_.begin(), data_buffer_.end());
-    const double min_value = *std::min_element(data_buffer_.begin(), data_buffer_.end());
-    const double margined_max_value = max_value + (max_value - min_value) / 2;
-    const double margined_min_value = min_value - (max_value - min_value) / 2;
+  const double margined_max_value = max_value_ + (max_value_ - min_value_) / 2;
+  const double margined_min_value = min_value_ - (max_value_ - min_value_) / 2;
 
-    for (size_t i = 1; i < data_buffer_.size(); i++) {
-      double v_prev =
-        (margined_max_value - data_buffer_[i - 1]) / (margined_max_value - margined_min_value);
-      double v = (margined_max_value - data_buffer_[i]) / (margined_max_value - margined_min_value);
-      double u_prev = (i - 1) / (float)data_buffer_.size();
-      double u = i / (float)data_buffer_.size();
+  // Plot graph
+  for (size_t i = 1; i < data_buffer_.size(); i++) {
+    double v_prev =
+      (margined_max_value - data_buffer_[i - 1]) / (margined_max_value - margined_min_value);
+    double v = (margined_max_value - data_buffer_[i]) / (margined_max_value - margined_min_value);
+    double u_prev = (i - 1) / (float)data_buffer_.size();
+    double u = i / (float)data_buffer_.size();
 
-      // Clamp
-      v_prev = std::clamp(v_prev, 0.0, 1.0);
-      u_prev = std::clamp(u_prev, 0.0, 1.0);
-      v = std::clamp(v, 0.0, 1.0);
-      u = std::clamp(u, 0.0, 1.0);
+    // Clamp
+    v_prev = std::clamp(v_prev, 0.0, 1.0);
+    u_prev = std::clamp(u_prev, 0.0, 1.0);
+    v = std::clamp(v, 0.0, 1.0);
+    u = std::clamp(u, 0.0, 1.0);
 
-      uint16_t x_prev = (int)(u_prev * w);
-      uint16_t x = (int)(u * w);
-      uint16_t y_prev = (int)(v_prev * h);
-      uint16_t y = (int)(v * h);
-      painter.drawLine(x_prev, y_prev, x, y);
-    }
+    uint16_t x_prev = (int)(u_prev * w);
+    uint16_t x = (int)(u * w);
+    uint16_t y_prev = (int)(v_prev * h);
+    uint16_t y = (int)(v * h);
+    painter.drawLine(x_prev, y_prev, x, y);
   }
+
+  // Draw value
+  {
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(2) << data_buffer_.back();
+
+    QFont font = painter.font();
+    font.setPointSize(w / ss.str().size());
+    font.setBold(true);
+    painter.setFont(font);
+    painter.drawText(0, 0, w, h, Qt::AlignCenter, ss.str().c_str());
+  }
+
   painter.end();
 }
 
