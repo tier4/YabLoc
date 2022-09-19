@@ -62,6 +62,7 @@ protected:
   rviz_common::properties::FloatProperty * property_fg_alpha_;
   rviz_common::properties::FloatProperty * property_bg_alpha_;
   rviz_common::properties::IntProperty * property_font_size_;
+  rviz_common::properties::IntProperty * property_line_thick_;
   QImage hud_;
 
 private:

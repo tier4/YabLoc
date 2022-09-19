@@ -28,41 +28,48 @@ Plotter2dOverlayDisplay::Plotter2dOverlayDisplay()
 {
   data_buffer_.resize(100);
 
-  property_topic_name_ = new rviz_common::properties::StringProperty(
-    "Topic", "/", "String", this, SLOT(updateVisualization()));
-  property_left_ = new rviz_common::properties::IntProperty(
+  using namespace rviz_common::properties;
+
+  property_topic_name_ =
+    new StringProperty("Topic", "/", "String", this, SLOT(updateVisualization()));
+  property_left_ = new IntProperty(
     "Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
   property_left_->setMin(0);
-  property_top_ = new rviz_common::properties::IntProperty(
-    "Top", 128, "Top of the plotter window", this, SLOT(updateVisualization()));
+  property_top_ =
+    new IntProperty("Top", 128, "Top of the plotter window", this, SLOT(updateVisualization()));
   property_top_->setMin(0);
 
-  property_width_ = new rviz_common::properties::IntProperty(
+  property_width_ = new IntProperty(
     "Width", 256, "Width of the plotter window", this, SLOT(updateVisualization()), this);
   property_width_->setMin(10);
-  property_height_ = new rviz_common::properties::IntProperty(
+  property_height_ = new IntProperty(
     "Height", 256, "Height of the plotter window", this, SLOT(updateVisualization()), this);
   property_height_->setMin(10);
 
-  property_fg_color_ = new rviz_common::properties::ColorProperty(
+  property_fg_color_ = new ColorProperty(
     "Foreground Color", QColor(255, 255, 40), "Foreground Color", this, SLOT(updateVisualization()),
     this);
-  property_bg_color_ = new rviz_common::properties::ColorProperty(
+  property_bg_color_ = new ColorProperty(
     "Background Color", QColor(50, 50, 50), "Background Color", this, SLOT(updateVisualization()),
     this);
 
-  property_fg_alpha_ = new rviz_common::properties::FloatProperty(
+  property_fg_alpha_ = new FloatProperty(
     "Foregrund Alpha", 0.8, "Foreground Alpha", this, SLOT(updateVisualization()), this);
-  property_bg_alpha_ = new rviz_common::properties::FloatProperty(
-    "Background Alpha", 0.2, "Background Alpha", this, SLOT(updateVisualization()), this);
   property_fg_alpha_->setMin(0.0);
   property_fg_alpha_->setMax(1.0);
+
+  property_bg_alpha_ = new FloatProperty(
+    "Background Alpha", 0.2, "Background Alpha", this, SLOT(updateVisualization()), this);
   property_bg_alpha_->setMin(0.0);
   property_bg_alpha_->setMax(1.0);
 
-  property_font_size_ = new rviz_common::properties::IntProperty(
-    "Font Size", 12, "Font Size", this, SLOT(updateVisualization()));
+  property_font_size_ =
+    new IntProperty("Font Size", 12, "Font Size", this, SLOT(updateVisualization()));
   property_font_size_->setMin(0);
+
+  property_line_thick_ =
+    new IntProperty("Line Thick", 2, "Line Thick", this, SLOT(updateVisualization()));
+  property_line_thick_->setMin(1);
 }
 
 Plotter2dOverlayDisplay::~Plotter2dOverlayDisplay()
@@ -86,6 +93,8 @@ void Plotter2dOverlayDisplay::onInitialize()
   overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());
   overlay_->setPosition(property_left_->getInt(), property_top_->getInt());
   overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
+
+  updateVisualization();
 }
 
 void Plotter2dOverlayDisplay::onEnable()
@@ -142,49 +151,50 @@ void Plotter2dOverlayDisplay::updateVisualization()
 {
   if (!last_msg_ptr_) return;
 
-  QColor background_color(property_bg_color_->getColor());
-  background_color.setAlpha(255 * property_bg_alpha_->getFloat());
   jsk_rviz_plugins::ScopedPixelBuffer buffer = overlay_->getBuffer();
-  hud_ = buffer.getQImage(*overlay_);
-  hud_.fill(background_color);
 
-  overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());
-  overlay_->setPosition(property_left_->getInt(), property_top_->getInt());
-  overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
+  {
+    overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());
+    overlay_->setPosition(property_left_->getInt(), property_top_->getInt());
+    overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
+  }
 
-  const int w = overlay_->getTextureWidth();
-  const int h = overlay_->getTextureHeight();
+  // Fill background
+  {
+    QColor background_color(property_bg_color_->getColor());
+    background_color.setAlpha(255 * property_bg_alpha_->getFloat());
+    hud_ = buffer.getQImage(*overlay_);
+    hud_.fill(background_color);
+  }
 
   const int font_size_ = property_font_size_->getInt();
+  const int line_width = property_line_thick_->getInt();
 
   QPainter painter(&hud_);
-  QColor fg_color_(property_fg_color_->getColor());
-  fg_color_.setAlpha(255 * property_fg_alpha_->getFloat());
 
-  if (font_size_ != 0) {
+  {
+    QColor fg_color_(property_fg_color_->getColor());
+    fg_color_.setAlpha(255 * property_fg_alpha_->getFloat());
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(QPen(fg_color_, line_width, Qt::SolidLine));
+  }
+
+  {
     QFont font("Liberation Sans");
     font.setPointSize(font_size_);
     font.setBold(true);
     painter.setFont(font);
   }
 
+  const int caption_offset = painter.fontMetrics().height();
+  const int w = overlay_->getTextureWidth();
+  const int h = overlay_->getTextureHeight() - caption_offset;
+
+  // Draw topic name
   {
     const std::string text = property_topic_name_->getStdString();
-    std::string color_wrapped_text =
-      (boost::format("<span style=\"color: rgba(%2%, %3%, %4%, %5%)\">%1%</span>") % text %
-       fg_color_.red() % fg_color_.green() % fg_color_.blue() % fg_color_.alpha())
-        .str();
-
-    QStaticText static_text(
-      boost::algorithm::replace_all_copy(color_wrapped_text, "\n", "<br >").c_str());
-
-    static_text.setTextWidth(w);
-    painter.drawStaticText(0, 0, static_text);
+    painter.drawText(0, h, w, caption_offset, Qt::AlignHCenter | Qt::AlignVCenter, {text.c_str()});
   }
-
-  const double line_width = 1.0f;
-  painter.setRenderHint(QPainter::Antialiasing, true);
-  painter.setPen(QPen(fg_color_, line_width, Qt::SolidLine));
 
   {
     painter.drawLine(0, 0, 0, h);
@@ -206,11 +216,11 @@ void Plotter2dOverlayDisplay::updateVisualization()
       double u_prev = (i - 1) / (float)data_buffer_.size();
       double u = i / (float)data_buffer_.size();
 
-      // chop within 0 ~ 1
-      v_prev = std::max(std::min(v_prev, 1.0), 0.0);
-      u_prev = std::max(std::min(u_prev, 1.0), 0.0);
-      v = std::max(std::min(v, 1.0), 0.0);
-      u = std::max(std::min(u, 1.0), 0.0);
+      // Clamp
+      v_prev = std::clamp(v_prev, 0.0, 1.0);
+      u_prev = std::clamp(u_prev, 0.0, 1.0);
+      v = std::clamp(v, 0.0, 1.0);
+      u = std::clamp(u, 0.0, 1.0);
 
       uint16_t x_prev = (int)(u_prev * w);
       uint16_t x = (int)(u * w);
