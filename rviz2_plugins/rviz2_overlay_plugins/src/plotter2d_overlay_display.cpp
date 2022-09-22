@@ -162,7 +162,7 @@ void Plotter2dOverlayDisplay::processMessage(const std_msgs::msg::Float32::Const
 
 void Plotter2dOverlayDisplay::update(float wall_dt, float ros_dt)
 {
-  (void)ros_dt;
+  (void)wall_dt;
 
   std::string current_topic_name = property_topic_name_->getStdString();
   if (current_topic_name != topic_name_) {
@@ -170,14 +170,15 @@ void Plotter2dOverlayDisplay::update(float wall_dt, float ros_dt)
     subscribe();
   }
 
-  if (wall_dt + last_time_ > update_interval_) {
+  last_time_ += ros_dt;
+
+  if (last_time_ > update_interval_) {
     last_time_ = 0.f;
     if (last_msg_ptr_)
       data_buffer_.push_back(last_msg_ptr_->data);
     else
       data_buffer_.push_back(0);
   } else {
-    last_time_ += wall_dt;
   }
   updateVisualization();
 }
@@ -266,7 +267,7 @@ void Plotter2dOverlayDisplay::updateVisualization()
   // Draw value
   {
     std::ostringstream ss;
-    ss << std::fixed << std::setprecision(2) << data_buffer_.back();
+    ss << std::fixed << std::setprecision(3) << data_buffer_.back();
 
     QFont font = painter.font();
     font.setPointSize(w / ss.str().size());
