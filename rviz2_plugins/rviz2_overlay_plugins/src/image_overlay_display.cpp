@@ -16,32 +16,41 @@
 
 #include <QPainter>
 #include <ament_index_cpp/get_package_share_directory.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
-#include <cv_bridge/cv_bridge.h>
 #include <opencv4/opencv2/highgui.hpp>
 #include <rviz_common/uniform_string_stream.hpp>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+
+#include <cv_bridge/cv_bridge.h>
 
 namespace rviz_plugins
 {
 ImageOverlayDisplay::ImageOverlayDisplay()
 {
-  property_topic_name_ = new rviz_common::properties::StringProperty("Topic", "/", "String", this, SLOT(updateVisualization()));
-  property_left_ = new rviz_common::properties::IntProperty("Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
+  property_topic_name_ = new rviz_common::properties::StringProperty(
+    "Topic", "/", "String", this, SLOT(updateVisualization()));
+  property_left_ = new rviz_common::properties::IntProperty(
+    "Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
   property_left_->setMin(0);
-  property_top_ = new rviz_common::properties::IntProperty("Top", 128, "Top of the plotter window", this, SLOT(updateVisualization()));
+  property_top_ = new rviz_common::properties::IntProperty(
+    "Top", 128, "Top of the plotter window", this, SLOT(updateVisualization()));
   property_top_->setMin(0);
 
-  property_width_ = new rviz_common::properties::IntProperty("Width", 256, "Width of the plotter window", this, SLOT(updateVisualization()), this);
+  property_width_ = new rviz_common::properties::IntProperty(
+    "Width", 256, "Width of the plotter window", this, SLOT(updateVisualization()), this);
   property_width_->setMin(10);
-  property_height_ = new rviz_common::properties::IntProperty("Height", 256, "Height of the plotter window", this, SLOT(updateVisualization()), this);
+  property_height_ = new rviz_common::properties::IntProperty(
+    "Height", 256, "Height of the plotter window", this, SLOT(updateVisualization()), this);
   property_height_->setMin(10);
 
-  property_alpha_ = new rviz_common::properties::FloatProperty("Alpha", 0.8, "Foreground Alpha", this, SLOT(updateVisualization()), this);
+  property_alpha_ = new rviz_common::properties::FloatProperty(
+    "Alpha", 0.8, "Foreground Alpha", this, SLOT(updateVisualization()), this);
   property_alpha_->setMin(0.0);
   property_alpha_->setMax(1.0);
 
-  property_image_type_ = new rviz_common::properties::BoolProperty("Image Topic Style", true, "is compresed?", this, SLOT(updateVisualization()));
+  property_image_type_ = new rviz_common::properties::BoolProperty(
+    "Image Topic Style", true, "is compresed?", this, SLOT(updateVisualization()));
 }
 
 ImageOverlayDisplay::~ImageOverlayDisplay()
@@ -67,7 +76,8 @@ void ImageOverlayDisplay::onInitialize()
   overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
 
   rclcpp::Node::SharedPtr raw_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-  it_ = std::shared_ptr<image_transport::ImageTransport>(new image_transport::ImageTransport(raw_node));
+  it_ =
+    std::shared_ptr<image_transport::ImageTransport>(new image_transport::ImageTransport(raw_node));
 }
 
 void ImageOverlayDisplay::onEnable()
@@ -88,20 +98,18 @@ void ImageOverlayDisplay::subscribe()
   topic_name_ = property_topic_name_->getStdString();
   std::cout << "try to subscribe " << topic_name_ << std::endl;
   if (topic_name_.length() > 0 && topic_name_ != "/") {
-    sub_ = std::make_shared<image_transport::Subscriber>(it_->subscribe(topic_name_, 10, std::bind(&ImageOverlayDisplay::processMessage, this, std::placeholders::_1)));
+    sub_ = std::make_shared<image_transport::Subscriber>(it_->subscribe(
+      topic_name_, 10,
+      std::bind(&ImageOverlayDisplay::processMessage, this, std::placeholders::_1)));
   }
 }
 
-void ImageOverlayDisplay::unsubscribe()
-{
-  sub_.reset();
-}
+void ImageOverlayDisplay::unsubscribe() { sub_.reset(); }
 
 void ImageOverlayDisplay::processMessage(const sensor_msgs::msg::Image::ConstSharedPtr msg_ptr)
 {
   if (!isEnabled()) return;
 
-  std::cout << "processMessage" << std::endl;
   last_msg_ptr_ = msg_ptr;
   update_required_ = true;
   queueRender();
@@ -138,9 +146,10 @@ void ImageOverlayDisplay::updateVisualization()
 
   cv::Mat bgr_image;
   try {
-    const cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(last_msg_ptr_, sensor_msgs::image_encodings::BGR8);
+    const cv_bridge::CvImagePtr cv_ptr =
+      cv_bridge::toCvCopy(last_msg_ptr_, sensor_msgs::image_encodings::BGR8);
     bgr_image = cv_ptr->image;
-  } catch (cv_bridge::Exception& e) {
+  } catch (cv_bridge::Exception & e) {
     std::cerr << "cv_bridge exception: " << e.what() << std::endl;
   }
 
@@ -149,7 +158,8 @@ void ImageOverlayDisplay::updateVisualization()
 
   std::vector<cv::Mat> channels;
   cv::split(bgr_image, channels);
-  const cv::Mat a_image(bgr_image.rows, bgr_image.cols, CV_8UC1, cv::Scalar(property_alpha_->getFloat() * 255.0));
+  const cv::Mat a_image(
+    bgr_image.rows, bgr_image.cols, CV_8UC1, cv::Scalar(property_alpha_->getFloat() * 255.0));
   channels.push_back(a_image);
 
   cv::Mat bgra_image;
