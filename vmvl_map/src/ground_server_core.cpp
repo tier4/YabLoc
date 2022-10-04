@@ -30,13 +30,13 @@ GroundServer::GroundServer()
 
   service_ = create_service<Ground>("ground", on_service);
   sub_map_ = create_subscription<HADMapBin>("/map/vector_map", map_qos, on_map);
-  sub_pose_stamped_ = create_subscription<PoseStamped>("/particle_pose", 10, on_pose);
+  sub_pose_stamped_ = create_subscription<PoseStamped>("particle_pose", 10, on_pose);
 
-  pub_ground_height_ = create_publisher<Float32>("/height", 10);
-  pub_ground_plane_ = create_publisher<Float32Array>("/ground", 10);
-  pub_marker_ = create_publisher<Marker>("/ground_marker", 10);
-  pub_string_ = create_publisher<String>("/ground_status", 10);
-  pub_near_cloud_ = create_publisher<PointCloud2>("/near_cloud", 10);
+  pub_ground_height_ = create_publisher<Float32>("height", 10);
+  pub_ground_plane_ = create_publisher<Float32Array>("ground", 10);
+  pub_marker_ = create_publisher<Marker>("ground_marker", 10);
+  pub_string_ = create_publisher<String>("ground_status", 10);
+  pub_near_cloud_ = create_publisher<PointCloud2>("near_cloud", 10);
 }
 
 void GroundServer::onPoseStamped(const PoseStamped & msg)
@@ -66,6 +66,7 @@ void GroundServer::onPoseStamped(const PoseStamped & msg)
     pub_string_->publish(string_msg);
   }
 
+  // Publish nearest point cloud for debug
   {
     pcl::PointCloud<pcl::PointXYZ> near_cloud;
     for (int index : last_near_point_indices_) near_cloud.push_back(cloud_->at(index));
@@ -95,7 +96,8 @@ void GroundServer::onMap(const HADMapBin & msg)
   const std::set<std::string> visible_labels = {
     "zebra_marking", "virtual", "line_thin", "line_thick", "pedestrian_marking", "stop_line"};
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr upsampled_cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  pcl::PointCloud<pcl::PointXYZ>::Ptr upsampled_cloud =
+    pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
 
   for (lanelet::LineString3d & line : lanelet_map->lineStringLayer) {
     if (!line.hasAttribute(lanelet::AttributeName::Type)) continue;
@@ -131,8 +133,10 @@ std::vector<int> mergeIndices(const std::vector<int> & indices1, const std::vect
   return indices;
 }
 
-float GroundServer::estimateHeight(const geometry_msgs::msg::Point & point)
+float GroundServer::estimateHeightSimply(const geometry_msgs::msg::Point & point) const
 {
+  // Return the height of the nearest point
+  // NOTE: Sometimes it might offer not accurate height
   std::vector<int> k_indices;
   std::vector<float> distances;
   pcl::PointXYZ p;
@@ -171,7 +175,7 @@ GroundServer::GroundPlane GroundServer::estimateGround(const Point & point)
   pcl::PointXYZ xyz;
   xyz.x = point.x;
   xyz.y = point.y;
-  xyz.z = estimateHeight(point);
+  xyz.z = estimateHeightSimply(point);
   kdtree_->nearestKSearch(xyz, K, k_indices, distances);
   kdtree_->radiusSearch(xyz, R, r_indices, distances);
 
@@ -180,17 +184,10 @@ GroundServer::GroundPlane GroundServer::estimateGround(const Point & point)
   if (indices.empty()) indices = raw_indices;
   last_near_point_indices_ = indices;
 
-  const float height = cloud_->at(k_indices.front()).getVector3fMap().z();
-
-  GroundPlane plane;
-  plane.xyz.x() = point.x;
-  plane.xyz.y() = point.y;
-  plane.xyz.z() = height;
-  plane.normal = Eigen::Vector3f::UnitZ();
-
+  // Estimate normal vector using covariance matrix around the target point
   Eigen::Matrix3f covariance;
   Eigen::Vector4f centroid;
-  centroid << point.x, point.y, height, 0;
+  pcl::compute3DCentroid(*cloud_, indices, centroid);
   pcl::computeCovarianceMatrix(*cloud_, indices, centroid, covariance);
 
   Eigen::Vector4f plane_parameter;
@@ -200,21 +197,36 @@ GroundServer::GroundPlane GroundServer::estimateGround(const Point & point)
   if (normal.z() < 0) normal = -normal;
 
   // Remove NaN
-  if (normal.hasNaN()) normal = Eigen::Vector3f::UnitZ();
-  // NOTE: Remove too large tilt
+  if (!normal.allFinite()) {
+    normal = Eigen::Vector3f::UnitZ();
+    RCLCPP_WARN_STREAM(get_logger(), "Reject NaN tilt");
+  }
+  // Remove too large tilt
   if ((normal.dot(Eigen::Vector3f::UnitZ())) < 0.707) {
     normal = Eigen::Vector3f::UnitZ();
     RCLCPP_WARN_STREAM(get_logger(), "Reject too large tilt of ground");
   }
 
-  // Smoothing
+  // Smoothing (moving averaging)
   vector_buffer_.push_back(normal);
   Eigen::Vector3f mean = Eigen::Vector3f::Zero();
   for (const Eigen::Vector3f & v : vector_buffer_) mean += v;
   mean /= vector_buffer_.size();
+
+  GroundPlane plane;
+  plane.xyz.x() = point.x;
+  plane.xyz.y() = point.y;
   plane.normal = mean.normalized();
 
   if (force_zero_tilt_) plane.normal = Eigen::Vector3f::UnitZ();
+
+  {
+    Eigen::Vector3f center = centroid.topRows(3);
+    float inner = center.dot(plane.normal);
+    float px_nx = point.x * plane.normal.x();
+    float py_ny = point.y * plane.normal.y();
+    plane.xyz.z() = (inner - px_nx - py_ny) / plane.normal.z();
+  }
 
   return plane;
 }
@@ -223,7 +235,7 @@ void GroundServer::onService(
   const std::shared_ptr<Ground::Request> request, std::shared_ptr<Ground::Response> response)
 {
   if (kdtree_ == nullptr) return;
-  float z = estimateHeight(request->point);
+  float z = estimateHeightSimply(request->point);
   response->pose.position.x = request->point.x;
   response->pose.position.y = request->point.y;
   response->pose.position.z = z;
