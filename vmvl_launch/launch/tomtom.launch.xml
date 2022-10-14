@@ -7,8 +7,8 @@
     <arg name="static_angular_covariance" default="0.0015"/>
     <arg name="static_scale_factor" default="-1.0" description="if negative value, static_scale_factor is not used"/>
 
-    <arg name="road_marking_labels" default="[zebra_marking, line_thin, line_thick, pedestrian_marking, stop_line, road_border]"/>
-    <arg name="sign_board_labels" default="[sign-board]"/>
+    <arg name="road_marking_labels" default="[zebra_marking, line_thin, line_thick, pedestrian_marking, stop_line, road_border, curbstone]" />
+    <arg name="sign_board_labels" default="[traffic_sign, guard_rail]" />
 
     <include file="$(find-pkg-share vmvl_launch)/launch/impl/run.launch.xml"/>
 </launch>
