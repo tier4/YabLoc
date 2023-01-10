@@ -1,0 +1,6 @@
+<library path="rviz2_set_bool_panel">
+  <class name="set_bool_panel/SetBoolPanel"
+         type="set_bool_panel::SetBoolPanel"
+         base_class_type="rviz_common::Panel">
+  </class>
+</library>
