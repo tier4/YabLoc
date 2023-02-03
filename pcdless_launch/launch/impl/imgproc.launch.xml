@@ -26,7 +26,7 @@
             <remap from="src_image" to="$(var src_image)"/>
             <remap from="src_info" to="$(var src_info)"/>
         </node>
-        <node name="override_static_tf" pkg="tf2_ros" exec="static_transform_publisher" args="--x 1.121  --y -0.056 --z 1.974 --roll -1.551 --pitch 0.006 --yaw -1.580 --frame-id  base_link --child-frame-id override_camera_frame"/>
+        <node name="override_static_tf" pkg="tf2_ros" exec="static_transform_publisher" args="1.121 -0.056 1.974 -1.551 0.006 -1.580 base_link override_camera_frame"/>
     </group>
     <group unless="$(var override_extrinsic)"> 
         <node name="undistort" pkg="undistort" exec="undistort_node" output="screen" args="--ros-args --log-level warn">

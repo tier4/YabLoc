@@ -83,6 +83,6 @@
         <node name="command_publisher" pkg="pcdless_launch" exec="control_command_publisher.py" output="screen" args="--ros-args --log-level info"/>
 
         <!-- static tf -->
-        <node name="base_link_tf" pkg="tf2_ros" exec="static_transform_publisher" args="--frame-id /particle_filter --child-frame-id /base_link"/>
+        <node name="base_link_tf" pkg="tf2_ros" exec="static_transform_publisher" args="0 0 0 0 0 0 /particle_filter /base_link"/>
     </group>
 </launch>
