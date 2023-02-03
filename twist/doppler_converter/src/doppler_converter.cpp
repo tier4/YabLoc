@@ -32,14 +32,26 @@ private:
   void on_pvtgeodetic(const PVTGeodetic & src)
   {
     auto rad_to_deg = [](double rad) -> double { return rad * 180 / M_PI; };
-
+    if(src.mode==0){
+      return;
+    }
     NavPVT dst = common::stamp_to_ublox_time(src.header.stamp);
     dst.vel_n = src.vn;
     dst.vel_e = src.ve;
     dst.vel_d = -src.vu;
     dst.lat = rad_to_deg(src.latitude) * 1e7;
     dst.lon = rad_to_deg(src.longitude) * 1e7;
-    dst.flags = NavPVT::FLAGS_GNSS_FIX_OK;
+    if(src.mode==5){
+      dst.flags = NavPVT::FLAGS_GNSS_FIX_OK+NavPVT::CARRIER_PHASE_FIXED;
+    }
+    else if(src.mode==4){
+      dst.flags = NavPVT::FLAGS_GNSS_FIX_OK+NavPVT::CARRIER_PHASE_FLOAT;
+    }
+    else{
+      dst.flags = NavPVT::FLAGS_GNSS_FIX_OK;
+    }
+
+
     dst.height = src.height;
     pub_navpvt_->publish(dst);
   }
