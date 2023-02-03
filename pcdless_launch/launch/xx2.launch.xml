@@ -18,7 +18,7 @@
         <arg name="src_image" value="/sensing/camera/c1/image_raw/compressed"/>
         <arg name="src_info" value="/sensing/camera/c1/camera_info"/>
         <arg name="target_height_ratio" value="0.80"/>
-        <arg name="override_extrinsic" value="false"/>
+        <arg name="override_extrinsic" value="true"/>
     </include>
 
 </launch>
