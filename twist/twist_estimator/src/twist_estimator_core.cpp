@@ -33,7 +33,7 @@ TwistEstimator::TwistEstimator()
   pub_twist_with_covariance_ = create_publisher<TwistCovStamped>("twist_with_cov", 10);
 
   // rotation, velocity, bias, scale
-  state_ = Eigen::Vector4f(0, 20, 0, 1);
+  state_ = Eigen::Vector4f(0, 0, 0, 1);
   cov_ = Eigen::Vector4f(81, 400, 1e-6f, 1e-5f).asDiagonal();
   cov_predict_ = Eigen::Vector4f(0.01, 100, 1e-4f, 1e-4f).asDiagonal();
 
