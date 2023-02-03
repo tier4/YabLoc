@@ -21,7 +21,7 @@ LineSegmentDetector::LineSegmentDetector() : Node("line_detector")
   pub_image_lsd_ = create_publisher<Image>("lsd_image", 10);
   pub_cloud_ = create_publisher<PointCloud2>("lsd_cloud", 10);
 
-  lsd_ = cv::createLineSegmentDetector(cv::LSD_REFINE_STD, 0.8, 0.6, 2.0, 22.5, 0, 0.7, 1024);
+  lsd_ = cv::mylsd::createLineSegmentDetector(cv::LSD_REFINE_STD, 0.8, 0.6, 2.0, 22.5, 0, 0.7, 1024);
 }
 
 void LineSegmentDetector::on_image(const sensor_msgs::msg::Image & msg)

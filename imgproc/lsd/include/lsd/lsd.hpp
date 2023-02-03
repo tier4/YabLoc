@@ -2,7 +2,7 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 #include <opencv4/opencv2/core/eigen.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
+//#include <opencv4/opencv2/imgproc.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/camera_info.hpp>
@@ -12,7 +12,7 @@
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-
+#include <3rd/opencv_lsd/lsd/lsd.hpp>
 #include <optional>
 
 namespace pcdless::lsd
@@ -32,7 +32,7 @@ private:
   rclcpp::Publisher<Image>::SharedPtr pub_image_lsd_;
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_cloud_;
 
-  cv::Ptr<cv::LineSegmentDetector> lsd_;
+  cv::Ptr<cv::mylsd::LineSegmentDetector> lsd_;
 
   std::vector<cv::Mat> remove_too_outer_elements(
     const cv::Mat & lines, const cv::Size & size) const;

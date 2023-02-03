@@ -23,6 +23,11 @@ find_package(Eigen3 REQUIRED)
 # OpenCV
 find_package(OpenCV REQUIRED)
 
+file(GLOB REGULATORY_ELEMENT_SOURCE 3rd/regulatory_elements/lib/*cpp)
+ament_auto_add_library(cv_lsd SHARED
+  include/3rd/opencv_lsd/lsd/lsd.cpp)
+target_include_directories(cv_lsd PUBLIC include 3rd/opencv_lsd/)
+
 # ===================================================
 # Executable
 macro(ADD_EXE)
@@ -41,7 +46,7 @@ macro(ADD_EXE)
   target_link_libraries(${TARGET_NAME} ${_ARG_LIB} ${OpenCV_LIBS})
 endmacro()
 
-ADD_EXE(TARGET lsd_node SRC src/lsd_node.cpp src/lsd_core.cpp INC include)
+ADD_EXE(TARGET lsd_node SRC src/lsd_node.cpp src/lsd_core.cpp INC include LIB cv_lsd)
 
 # ===================================================
 ament_auto_package()
