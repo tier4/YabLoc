@@ -53,7 +53,7 @@ private:
   rclcpp::Publisher<Image>::SharedPtr pub_image_;
   rclcpp::Publisher<CameraInfo>::SharedPtr pub_info_;
   std::optional<CameraInfo> info_{std::nullopt};
-  std::optional<CameraInfo> scaled_info_{std::nullopt};
+  std::optional<CameraInfo> scaled_info_{std::nullopt}:q;
 
   cv::Mat undistort_map_x, undistort_map_y;
 
@@ -61,7 +61,8 @@ private:
   {
     if (!info_.has_value()) return;
     cv::Mat K = cv::Mat(cv::Size(3, 3), CV_64FC1, (void *)(info_->k.data()));
-    cv::Mat D = cv::Mat(cv::Size(5, 1), CV_64FC1, (void *)(info_->d.data()));
+    //cv::Mat D = cv::Mat(cv::Size(5, 1), CV_64FC1, (void *)(info_->d.data()));
+    cv::Mat D = cv::Mat::zeros(cv::Size(5, 1), CV_64FC1);
     cv::Size size(info_->width, info_->height);
 
     cv::Size new_size = size;
