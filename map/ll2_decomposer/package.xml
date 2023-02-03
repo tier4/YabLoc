@@ -19,6 +19,7 @@
   <depend>visualization_msgs</depend>
   <depend>lanelet2_core</depend>
   <depend>lanelet2_io</depend>
+  <depend>libgoogle-glog-dev</depend>
 
   <depend>autoware_auto_mapping_msgs</depend>
 

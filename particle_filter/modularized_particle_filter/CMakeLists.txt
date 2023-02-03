@@ -19,6 +19,17 @@ find_package(Sophus REQUIRED)
 
 ament_auto_find_build_dependencies()
 
+# Set ROS_DISTRO macros
+set(ROS_DISTRO $ENV{ROS_DISTRO})
+if(${ROS_DISTRO} STREQUAL "rolling")
+  add_compile_definitions(ROS_DISTRO_ROLLING)
+elseif(${ROS_DISTRO} STREQUAL "galactic")
+  add_compile_definitions(ROS_DISTRO_GALACTIC)
+elseif(${ROS_DISTRO} STREQUAL "humble")
+  add_compile_definitions(ROS_DISTRO_HUMBLE)
+endif()
+
+
 # ===================================================
 # Libraries
 ament_auto_add_library(

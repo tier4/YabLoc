@@ -27,7 +27,9 @@ find_package(Sophus REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
 
 # glog
-find_package(glog REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(glog REQUIRED libglog)
+#find_package(glog REQUIRED)
 
 # ===================================================
 # Executable
@@ -41,7 +43,7 @@ ament_auto_add_executable(${TARGET}
   src/camera_particle_corrector_core.cpp)
 target_include_directories(${TARGET} PUBLIC include)
 target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
-target_link_libraries(${TARGET} Sophus::Sophus ${PCL_LIBRARIES} glog::glog)
+target_link_libraries(${TARGET} Sophus::Sophus ${PCL_LIBRARIES} glog)
 
 # ===================================================
 ament_auto_package()

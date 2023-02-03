@@ -23,7 +23,7 @@ void upsample_line_string(
     xyz.getVector3fMap() = (f + l * d);
     cloud->push_back(xyz);
   }
-};
+}
 
 std::vector<int> merge_indices(const std::vector<int> & indices1, const std::vector<int> & indices2)
 {

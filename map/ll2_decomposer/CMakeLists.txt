@@ -22,7 +22,9 @@ find_package(Eigen3 REQUIRED)
 # PCL
 find_package(PCL REQUIRED)
 
-find_package(glog REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(glog REQUIRED libglog)
+#find_package(glog REQUIRED)
 
 # ===================================================
 # Library
