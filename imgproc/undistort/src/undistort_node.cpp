@@ -53,7 +53,7 @@ private:
   rclcpp::Publisher<Image>::SharedPtr pub_image_;
   rclcpp::Publisher<CameraInfo>::SharedPtr pub_info_;
   std::optional<CameraInfo> info_{std::nullopt};
-  std::optional<CameraInfo> scaled_info_{std::nullopt}:q;
+  std::optional<CameraInfo> scaled_info_{std::nullopt};
 
   cv::Mat undistort_map_x, undistort_map_y;
 
