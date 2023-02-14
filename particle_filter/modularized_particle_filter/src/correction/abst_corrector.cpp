@@ -34,7 +34,7 @@ std::optional<AbstCorrector::ParticleArray> AbstCorrector::get_synchronized_part
   }
 
   if (particle_array_buffer_.empty())
-    RCLCPP_WARN_STREAM(logger_, "sychronized particles are requested but buffer is empty");
+    RCLCPP_WARN_STREAM(logger_, "synchronized particles are requested but buffer is empty");
 
   if (particle_array_buffer_.empty()) return std::nullopt;
 
