@@ -4,8 +4,8 @@
   <name>rviz2_initialpose_plugins</name>
   <version>0.0.0</version>
   <description>initial pose plugin</description>
-  <maintainer email="kyabuuchi@todo.todo">kyabuuchi</maintainer>
-  <license>TODO</license>
+  <maintainer email="kento.yabuuchi.2@tier4.jp">Kento Yabuuchi</maintainer>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
