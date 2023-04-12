@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <mutex>
+#include <rclcpp/qos.hpp>
 
 #ifndef Q_MOC_RUN
 #include "jsk_overlay_utils.hpp"
@@ -25,7 +26,11 @@
 #include <rviz_common/properties/color_property.hpp>
 #include <rviz_common/properties/float_property.hpp>
 #include <rviz_common/properties/int_property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/properties/editable_enum_property.hpp>
 #include <rviz_common/ros_topic_display.hpp>
+#include <image_transport/subscriber_filter.h>
+#include <message_filters/subscriber.h>
 #endif
 
 namespace rviz_plugins
@@ -46,6 +51,7 @@ public:
 
 private Q_SLOTS:
   void updateVisualization();
+  void updateQoS();
 
 protected:
   void update(float wall_dt, float ros_dt) override;
@@ -58,11 +64,13 @@ protected:
   rviz_common::properties::StringProperty * property_topic_name_;
   rviz_common::properties::FloatProperty * property_alpha_;
   rviz_common::properties::BoolProperty * property_image_type_;
+  rviz_common::properties::EnumProperty * property_qos_reliability_;
+  rviz_common::properties::EnumProperty * property_qos_durability_;
+  rclcpp::QoS custom_qos_profile_;
 
 private:
-  std::shared_ptr<image_transport::ImageTransport> it_;
-  std::shared_ptr<image_transport::Subscriber> sub_;
   sensor_msgs::msg::Image::ConstSharedPtr last_msg_ptr_;
+  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr sub_;
   std::string topic_name_;
   bool update_required_ = true;
 };

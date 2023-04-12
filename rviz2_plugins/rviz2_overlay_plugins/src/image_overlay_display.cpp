@@ -27,6 +27,7 @@
 namespace rviz_plugins
 {
 ImageOverlayDisplay::ImageOverlayDisplay()
+  : custom_qos_profile_(10)
 {
   property_topic_name_ = new rviz_common::properties::StringProperty(
     "Topic", "/", "String", this, SLOT(updateVisualization()));
@@ -51,6 +52,20 @@ ImageOverlayDisplay::ImageOverlayDisplay()
 
   property_image_type_ = new rviz_common::properties::BoolProperty(
     "Image Topic Style", true, "is compresed?", this, SLOT(updateVisualization()));
+
+  property_qos_reliability_ = new rviz_common::properties::EnumProperty(
+    "QoS Reliability", "Reliable",
+    "Select the desired QoS reliability policy", this, SLOT(updateQoS()));
+
+  property_qos_reliability_->addOption("Reliable", 0);
+  property_qos_reliability_->addOption("Best Effort", 1);
+
+  property_qos_durability_ = new rviz_common::properties::EnumProperty(
+    "QoS Durability", "Volatile",
+    "Select the desired QoS durability policy", this, SLOT(updateQoS()));
+
+  property_qos_durability_->addOption("Volatile", 0);
+  property_qos_durability_->addOption("Transient Local", 1);
 }
 
 ImageOverlayDisplay::~ImageOverlayDisplay()
@@ -58,6 +73,26 @@ ImageOverlayDisplay::~ImageOverlayDisplay()
   if (initialized()) {
     overlay_->hide();
   }
+}
+
+void ImageOverlayDisplay::updateQoS()
+{
+  custom_qos_profile_ = rclcpp::QoS(10); // 10 is the depth of the history cache
+
+  // Set the reliability policy
+  if (property_qos_reliability_->getOptionInt() == 0)
+    custom_qos_profile_.reliable();
+  else
+    custom_qos_profile_.best_effort();
+
+  // Set the durability policy
+  if (property_qos_durability_->getOptionInt() == 0)
+    custom_qos_profile_.durability_volatile();
+  else
+    custom_qos_profile_ = custom_qos_profile_.transient_local();
+
+  // Resubscribe to the topic with the updated QoS settings
+  subscribe();
 }
 
 void ImageOverlayDisplay::onInitialize()
@@ -74,10 +109,6 @@ void ImageOverlayDisplay::onInitialize()
   overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());
   overlay_->setPosition(property_left_->getInt(), property_top_->getInt());
   overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
-
-  rclcpp::Node::SharedPtr raw_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-  it_ =
-    std::shared_ptr<image_transport::ImageTransport>(new image_transport::ImageTransport(raw_node));
 }
 
 void ImageOverlayDisplay::onEnable()
@@ -98,9 +129,10 @@ void ImageOverlayDisplay::subscribe()
   topic_name_ = property_topic_name_->getStdString();
   std::cout << "try to subscribe " << topic_name_ << std::endl;
   if (topic_name_.length() > 0 && topic_name_ != "/") {
-    sub_ = std::make_shared<image_transport::Subscriber>(it_->subscribe(
-      topic_name_, 10,
-      std::bind(&ImageOverlayDisplay::processMessage, this, std::placeholders::_1)));
+    auto raw_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
+    sub_ = raw_node->create_subscription<sensor_msgs::msg::Image>(
+      topic_name_, custom_qos_profile_,
+      std::bind(&ImageOverlayDisplay::processMessage, this, std::placeholders::_1));
   }
 }
 
