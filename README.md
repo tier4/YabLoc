@@ -185,3 +185,5 @@ If doppler (`ublox_msgs/msg/navpvt`) is available and the vehicle moves enough f
 ### 2. When Yabloc works `standalone:=false` (through Autoware's pose_initializer)
 
 <u>UNDER CONSTRUCTION</u>
+
+## License
