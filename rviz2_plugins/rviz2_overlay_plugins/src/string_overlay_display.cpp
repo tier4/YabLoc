@@ -1,4 +1,4 @@
-// Copyright 2020 Tier IV, Inc.
+// Copyright 2023 Tier IV, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,41 +12,87 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Copyright (c) 2014, JSK Lab
+// All rights reserved.
+//
+// Software License Agreement (BSD License)
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of {copyright_holder} nor the names of its
+//    contributors may be used to endorse or promote products derived
+//    from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.S SOFTWARE, EVEN IF ADVISED OF THE
+//  POSSIBILITY OF SUCH DAMAGE.
+
 #include "string_overlay_display.hpp"
 
 #include <QPainter>
 #include <QStaticText>
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <rviz_common/uniform_string_stream.hpp>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
-#include <rviz_common/uniform_string_stream.hpp>
 
 namespace rviz_plugins
 {
 StringOverlayDisplay::StringOverlayDisplay()
 {
-  property_topic_name_ = new rviz_common::properties::StringProperty("Topic", "/", "String", this, SLOT(updateVisualization()));
-  property_left_ = new rviz_common::properties::IntProperty("Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
+  property_topic_name_ = new rviz_common::properties::StringProperty(
+    "Topic", "/", "String", this, SLOT(updateVisualization()));
+  property_left_ = new rviz_common::properties::IntProperty(
+    "Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
   property_left_->setMin(0);
-  property_top_ = new rviz_common::properties::IntProperty("Top", 128, "Top of the plotter window", this, SLOT(updateVisualization()));
+  property_top_ = new rviz_common::properties::IntProperty(
+    "Top", 128, "Top of the plotter window", this, SLOT(updateVisualization()));
   property_top_->setMin(0);
 
-  property_width_ = new rviz_common::properties::IntProperty("Width", 256, "Width of the plotter window", this, SLOT(updateVisualization()), this);
+  property_width_ = new rviz_common::properties::IntProperty(
+    "Width", 256, "Width of the plotter window", this, SLOT(updateVisualization()), this);
   property_width_->setMin(10);
-  property_height_ = new rviz_common::properties::IntProperty("Height", 256, "Height of the plotter window", this, SLOT(updateVisualization()), this);
+  property_height_ = new rviz_common::properties::IntProperty(
+    "Height", 256, "Height of the plotter window", this, SLOT(updateVisualization()), this);
   property_height_->setMin(10);
 
-  property_fg_color_ = new rviz_common::properties::ColorProperty("Foreground Color", QColor(255, 255, 40), "Foreground Color", this, SLOT(updateVisualization()), this);
-  property_bg_color_ = new rviz_common::properties::ColorProperty("Background Color", QColor(50, 50, 50), "Background Color", this, SLOT(updateVisualization()), this);
+  property_fg_color_ = new rviz_common::properties::ColorProperty(
+    "Foreground Color", QColor(255, 255, 40), "Foreground Color", this, SLOT(updateVisualization()),
+    this);
+  property_bg_color_ = new rviz_common::properties::ColorProperty(
+    "Background Color", QColor(50, 50, 50), "Background Color", this, SLOT(updateVisualization()),
+    this);
 
-  property_fg_alpha_ = new rviz_common::properties::FloatProperty("Foregrund Alpha", 0.8, "Foreground Alpha", this, SLOT(updateVisualization()), this);
-  property_bg_alpha_ = new rviz_common::properties::FloatProperty("Background Alpha", 0.2, "Background Alpha", this, SLOT(updateVisualization()), this);
+  property_fg_alpha_ = new rviz_common::properties::FloatProperty(
+    "Foregrund Alpha", 0.8, "Foreground Alpha", this, SLOT(updateVisualization()), this);
+  property_bg_alpha_ = new rviz_common::properties::FloatProperty(
+    "Background Alpha", 0.2, "Background Alpha", this, SLOT(updateVisualization()), this);
   property_fg_alpha_->setMin(0.0);
   property_fg_alpha_->setMax(1.0);
   property_bg_alpha_->setMin(0.0);
   property_bg_alpha_->setMax(1.0);
 
-  property_font_size_ = new rviz_common::properties::IntProperty("Font Size", 12, "Font Size", this, SLOT(updateVisualization()));
+  property_font_size_ = new rviz_common::properties::IntProperty(
+    "Font Size", 12, "Font Size", this, SLOT(updateVisualization()));
   property_font_size_->setMin(0);
 }
 
@@ -91,14 +137,13 @@ void StringOverlayDisplay::subscribe()
   topic_name_ = property_topic_name_->getStdString();
   if (topic_name_.length() > 0 && topic_name_ != "/") {
     rclcpp::Node::SharedPtr raw_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-    string_sub_ = raw_node->create_subscription<std_msgs::msg::String>(topic_name_, 10, std::bind(&StringOverlayDisplay::processMessage, this, std::placeholders::_1));
+    string_sub_ = raw_node->create_subscription<std_msgs::msg::String>(
+      topic_name_, 10,
+      std::bind(&StringOverlayDisplay::processMessage, this, std::placeholders::_1));
   }
 }
 
-void StringOverlayDisplay::unsubscribe()
-{
-  string_sub_.reset();
-}
+void StringOverlayDisplay::unsubscribe() { string_sub_.reset(); }
 
 void StringOverlayDisplay::processMessage(const std_msgs::msg::String::ConstSharedPtr msg_ptr)
 {
@@ -144,7 +189,6 @@ void StringOverlayDisplay::updateVisualization()
   const bool align_bottom_ = false;
   const std::string text_ = last_msg_ptr_->data;
 
-
   QPainter painter(&hud_);
   QColor fg_color_(property_fg_color_->getColor());
   fg_color_.setAlpha(255 * property_fg_alpha_->getFloat());
@@ -156,12 +200,13 @@ void StringOverlayDisplay::updateVisualization()
     painter.setFont(font);
   }
   if (text_.length() > 0) {
-    std::string color_wrapped_text
-        = (boost::format("<span style=\"color: rgba(%2%, %3%, %4%, %5%)\">%1%</span>")
-            % text_ % fg_color_.red() % fg_color_.green() % fg_color_.blue() % fg_color_.alpha())
-              .str();
+    std::string color_wrapped_text =
+      (boost::format("<span style=\"color: rgba(%2%, %3%, %4%, %5%)\">%1%</span>") % text_ %
+       fg_color_.red() % fg_color_.green() % fg_color_.blue() % fg_color_.alpha())
+        .str();
 
-    QStaticText static_text(boost::algorithm::replace_all_copy(color_wrapped_text, "\n", "<br >").c_str());
+    QStaticText static_text(
+      boost::algorithm::replace_all_copy(color_wrapped_text, "\n", "<br >").c_str());
 
     static_text.setTextWidth(w);
     if (!align_bottom_) {
@@ -169,9 +214,9 @@ void StringOverlayDisplay::updateVisualization()
     } else {
       QStaticText only_wrapped_text(color_wrapped_text.c_str());
       QFontMetrics fm(painter.fontMetrics());
-      QRect text_rect = fm.boundingRect(0, 0, w, h,
-          Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignTop,
-          only_wrapped_text.text().remove(QRegExp("<[^>]*>")));
+      QRect text_rect = fm.boundingRect(
+        0, 0, w, h, Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignTop,
+        only_wrapped_text.text().remove(QRegExp("<[^>]*>")));
       painter.drawStaticText(0, h - text_rect.height(), static_text);
     }
   }

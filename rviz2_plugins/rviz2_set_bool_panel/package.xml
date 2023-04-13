@@ -3,9 +3,9 @@
 <package format="3">
   <name>rviz2_set_bool_panel</name>
   <version>0.0.0</version>
-  <description>set bool service panel</description>
-  <maintainer email="kyabuuchi@todo.todo">kyabuuchi</maintainer>
-  <license>TODO</license>
+  <description>set bool service rviz panel</description>
+  <maintainer email="kento.yabuuchi.2@tier4.jp">Kento Yabuuchi</maintainer>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 

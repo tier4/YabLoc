@@ -1,4 +1,4 @@
-// Copyright 2020 Tier IV, Inc.
+// Copyright 2023 Tier IV, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,39 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Copyright (c) 2014, JSK Lab
+// All rights reserved.
+//
+// Software License Agreement (BSD License)
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of {copyright_holder} nor the names of its
+//    contributors may be used to endorse or promote products derived
+//    from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.S SOFTWARE, EVEN IF ADVISED OF THE
+//  POSSIBILITY OF SUCH DAMAGE.
 
 #include "image_overlay_display.hpp"
 
@@ -26,8 +59,7 @@
 
 namespace rviz_plugins
 {
-ImageOverlayDisplay::ImageOverlayDisplay()
-  : custom_qos_profile_(10)
+ImageOverlayDisplay::ImageOverlayDisplay() : custom_qos_profile_(10)
 {
   property_topic_name_ = new rviz_common::properties::StringProperty(
     "Topic", "/", "String", this, SLOT(updateVisualization()));
@@ -54,15 +86,15 @@ ImageOverlayDisplay::ImageOverlayDisplay()
     "Image Topic Style", true, "is compresed?", this, SLOT(updateVisualization()));
 
   property_qos_reliability_ = new rviz_common::properties::EnumProperty(
-    "QoS Reliability", "Reliable",
-    "Select the desired QoS reliability policy", this, SLOT(updateQoS()));
+    "QoS Reliability", "Reliable", "Select the desired QoS reliability policy", this,
+    SLOT(updateQoS()));
 
   property_qos_reliability_->addOption("Reliable", 0);
   property_qos_reliability_->addOption("Best Effort", 1);
 
   property_qos_durability_ = new rviz_common::properties::EnumProperty(
-    "QoS Durability", "Volatile",
-    "Select the desired QoS durability policy", this, SLOT(updateQoS()));
+    "QoS Durability", "Volatile", "Select the desired QoS durability policy", this,
+    SLOT(updateQoS()));
 
   property_qos_durability_->addOption("Volatile", 0);
   property_qos_durability_->addOption("Transient Local", 1);
@@ -77,7 +109,7 @@ ImageOverlayDisplay::~ImageOverlayDisplay()
 
 void ImageOverlayDisplay::updateQoS()
 {
-  custom_qos_profile_ = rclcpp::QoS(10); // 10 is the depth of the history cache
+  custom_qos_profile_ = rclcpp::QoS(10);  // 10 is the depth of the history cache
 
   // Set the reliability policy
   if (property_qos_reliability_->getOptionInt() == 0)
