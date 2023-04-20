@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 This is a script to visualize the control topic of Autoware to validate planning/control component.
-The node subscribes /control/command/control_cmd and publish it as string and floor.
+The node subscribes /control/command/control_cmd and publishes it as string and floot value.
 
 e.g. $ ./publish_control_command.py
 '''
