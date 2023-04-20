@@ -2,7 +2,7 @@
 '''
 Script to publish only the topics necessary to make the localization component work from rosbag.
 
-e.g. $ ./play_rosbag_for_loc.py your_rosbag_path -o 
+e.g. $ ./play_rosbag_for_loc.py <your_rosbag_path> -o 
 '''
 import os
 import subprocess

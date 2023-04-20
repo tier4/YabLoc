@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-Since rosbags containing a large number of topics are large, this script extracts only the topics necessary for localization.
+This script extracts only the topics necessary for localization from big rosbag.
 
 e.g. $ ./extract_rosabg_for_loc.py -h
 '''
