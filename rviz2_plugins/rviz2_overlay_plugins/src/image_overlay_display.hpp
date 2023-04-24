@@ -63,6 +63,7 @@
 #include <rviz_common/properties/float_property.hpp>
 #include <rviz_common/properties/int_property.hpp>
 #include <rviz_common/ros_topic_display.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 
 #include <image_transport/subscriber_filter.h>
 #include <message_filters/subscriber.h>
@@ -91,6 +92,8 @@ private Q_SLOTS:
 protected:
   void update(float wall_dt, float ros_dt) override;
   void processMessage(const sensor_msgs::msg::Image::ConstSharedPtr msg_ptr);
+  void processCompressedMessage(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg_ptr);
+
   jsk_rviz_plugins::OverlayObject::Ptr overlay_;
   rviz_common::properties::IntProperty * property_left_;
   rviz_common::properties::IntProperty * property_top_;
@@ -106,6 +109,7 @@ protected:
 private:
   sensor_msgs::msg::Image::ConstSharedPtr last_msg_ptr_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr sub_;
+  rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr sub_compressed_;
   std::string topic_name_;
   bool update_required_ = true;
 };

@@ -162,13 +162,23 @@ void ImageOverlayDisplay::subscribe()
   std::cout << "try to subscribe " << topic_name_ << std::endl;
   if (topic_name_.length() > 0 && topic_name_ != "/") {
     auto raw_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-    sub_ = raw_node->create_subscription<sensor_msgs::msg::Image>(
-      topic_name_, custom_qos_profile_,
-      std::bind(&ImageOverlayDisplay::processMessage, this, std::placeholders::_1));
+    if (property_image_type_->getBool()) {
+      sub_compressed_ = raw_node->create_subscription<sensor_msgs::msg::CompressedImage>(
+        topic_name_, custom_qos_profile_,
+        std::bind(&ImageOverlayDisplay::processCompressedMessage, this, std::placeholders::_1));
+    } else {
+      sub_ = raw_node->create_subscription<sensor_msgs::msg::Image>(
+        topic_name_, custom_qos_profile_,
+        std::bind(&ImageOverlayDisplay::processMessage, this, std::placeholders::_1));
+    }
   }
 }
 
-void ImageOverlayDisplay::unsubscribe() { sub_.reset(); }
+void ImageOverlayDisplay::unsubscribe()
+{
+  sub_.reset();
+  sub_compressed_.reset();
+}
 
 void ImageOverlayDisplay::processMessage(const sensor_msgs::msg::Image::ConstSharedPtr msg_ptr)
 {
@@ -177,6 +187,27 @@ void ImageOverlayDisplay::processMessage(const sensor_msgs::msg::Image::ConstSha
   last_msg_ptr_ = msg_ptr;
   update_required_ = true;
   queueRender();
+}
+
+void ImageOverlayDisplay::processCompressedMessage(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg_ptr)
+{
+  if (!isEnabled()) return;
+
+  // Convert the compressed image to cv::Mat format using cv_bridge
+  cv_bridge::CvImagePtr cv_ptr;
+  try {
+    cv_ptr = cv_bridge::toCvCopy(msg_ptr, sensor_msgs::image_encodings::BGR8);
+  } catch (cv_bridge::Exception& e) {
+    std::cerr << "cv_bridge exception: " << e.what() << std::endl;
+    return;
+  }
+
+  // Create an Image message from the decompressed image
+  sensor_msgs::msg::Image::SharedPtr img_msg = std::make_shared<sensor_msgs::msg::Image>();
+  img_msg = cv_ptr->toImageMsg();
+
+  // Process the decompressed image message
+  processMessage(img_msg);
 }
 
 void ImageOverlayDisplay::update(float wall_dt, float ros_dt)
