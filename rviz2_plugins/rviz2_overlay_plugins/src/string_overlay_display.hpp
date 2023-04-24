@@ -85,11 +85,11 @@ protected:
   void update(float wall_dt, float ros_dt) override;
   void processMessage(const std_msgs::msg::String::ConstSharedPtr msg_ptr);
   jsk_rviz_plugins::OverlayObject::Ptr overlay_;
+  rviz_common::properties::RosTopicProperty * property_topic_name_;
   rviz_common::properties::IntProperty * property_left_;
   rviz_common::properties::IntProperty * property_top_;
   rviz_common::properties::IntProperty * property_width_;
   rviz_common::properties::IntProperty * property_height_;
-  rviz_common::properties::StringProperty * property_topic_name_;
   rviz_common::properties::ColorProperty * property_fg_color_;
   rviz_common::properties::ColorProperty * property_bg_color_;
   rviz_common::properties::FloatProperty * property_fg_alpha_;
