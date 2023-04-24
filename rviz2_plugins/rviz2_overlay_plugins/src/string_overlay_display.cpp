@@ -59,8 +59,13 @@ namespace rviz_plugins
 {
 StringOverlayDisplay::StringOverlayDisplay()
 {
-  property_topic_name_ = new rviz_common::properties::StringProperty(
-    "Topic", "/", "String", this, SLOT(updateVisualization()));
+  property_topic_name_ = new rviz_common::properties::RosTopicProperty(
+    "Topic", "", "", "", this, SLOT(updateVisualization()));
+  const QString message_type =
+    QString::fromStdString(rosidl_generator_traits::name<std_msgs::msg::String>());
+  property_topic_name_->setMessageType(message_type);
+  property_topic_name_->setDescription(message_type + " topic to subscribe to.");
+
   property_left_ = new rviz_common::properties::IntProperty(
     "Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
   property_left_->setMin(0);
@@ -110,8 +115,9 @@ void StringOverlayDisplay::onInitialize()
   rviz_common::UniformStringStream ss;
   ss << "StringOverlayDisplay" << count++;
   auto logger = context_->getRosNodeAbstraction().lock()->get_raw_node()->get_logger();
-  overlay_.reset(new jsk_rviz_plugins::OverlayObject(scene_manager_, logger, ss.str()));
+  property_topic_name_->initialize(context_->getRosNodeAbstraction());
 
+  overlay_.reset(new jsk_rviz_plugins::OverlayObject(scene_manager_, logger, ss.str()));
   overlay_->show();
 
   overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());

@@ -61,8 +61,13 @@ Plotter2dOverlayDisplay::Plotter2dOverlayDisplay()
 {
   using namespace rviz_common::properties;
 
-  property_topic_name_ =
-    new StringProperty("Topic", "/", "String", this, SLOT(updateVisualization()));
+  property_topic_name_ = new rviz_common::properties::RosTopicProperty(
+    "Topic", "", "", "", this, SLOT(updateVisualization()));
+  const QString message_type =
+    QString::fromStdString(rosidl_generator_traits::name<std_msgs::msg::Float32>());
+  property_topic_name_->setMessageType(message_type);
+  property_topic_name_->setDescription(message_type + " topic to subscribe to.");
+
   property_left_ = new IntProperty(
     "Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
   property_left_->setMin(0);
@@ -137,8 +142,9 @@ void Plotter2dOverlayDisplay::onInitialize()
   rviz_common::UniformStringStream ss;
   ss << "Plotter2dDisplay" << count++;
   auto logger = context_->getRosNodeAbstraction().lock()->get_raw_node()->get_logger();
-  overlay_.reset(new jsk_rviz_plugins::OverlayObject(scene_manager_, logger, ss.str()));
+  property_topic_name_->initialize(context_->getRosNodeAbstraction());
 
+  overlay_.reset(new jsk_rviz_plugins::OverlayObject(scene_manager_, logger, ss.str()));
   overlay_->show();
 
   overlay_->updateTextureSize(property_width_->getInt(), property_height_->getInt());

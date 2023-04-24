@@ -57,6 +57,7 @@
 #include "jsk_overlay_utils.hpp"
 
 #include <image_transport/image_transport.hpp>
+#include <image_transport/subscriber_filter.hpp>
 #include <rviz_common/properties/color_property.hpp>
 #include <rviz_common/properties/editable_enum_property.hpp>
 #include <rviz_common/properties/enum_property.hpp>
@@ -64,7 +65,6 @@
 #include <rviz_common/properties/int_property.hpp>
 #include <rviz_common/ros_topic_display.hpp>
 
-#include <image_transport/subscriber_filter.h>
 #include <message_filters/subscriber.h>
 #endif
 
@@ -92,11 +92,11 @@ protected:
   void update(float wall_dt, float ros_dt) override;
   void processMessage(const sensor_msgs::msg::Image::ConstSharedPtr msg_ptr);
   jsk_rviz_plugins::OverlayObject::Ptr overlay_;
+  rviz_common::properties::RosTopicProperty * property_topic_name_;
   rviz_common::properties::IntProperty * property_left_;
   rviz_common::properties::IntProperty * property_top_;
   rviz_common::properties::IntProperty * property_width_;
   rviz_common::properties::IntProperty * property_height_;
-  rviz_common::properties::StringProperty * property_topic_name_;
   rviz_common::properties::FloatProperty * property_alpha_;
   rviz_common::properties::BoolProperty * property_image_type_;
   rviz_common::properties::EnumProperty * property_qos_reliability_;
