@@ -61,8 +61,13 @@ namespace rviz_plugins
 {
 ImageOverlayDisplay::ImageOverlayDisplay() : custom_qos_profile_(10)
 {
-  property_topic_name_ = new rviz_common::properties::StringProperty(
-    "Topic", "/", "String", this, SLOT(updateVisualization()));
+  property_topic_name_ = new rviz_common::properties::RosTopicProperty(
+    "Topic", "", "", "", this, SLOT(updateVisualization()));
+  const QString message_type =
+    QString::fromStdString(rosidl_generator_traits::name<sensor_msgs::msg::Image>());
+  property_topic_name_->setMessageType(message_type);
+  property_topic_name_->setDescription(message_type + " topic to subscribe to.");
+
   property_left_ = new rviz_common::properties::IntProperty(
     "Left", 128, "Left of the plotter window", this, SLOT(updateVisualization()), this);
   property_left_->setMin(0);
@@ -134,6 +139,9 @@ void ImageOverlayDisplay::onInitialize()
   rviz_common::UniformStringStream ss;
   ss << "ImageOverlayDisplay" << count++;
   auto logger = context_->getRosNodeAbstraction().lock()->get_raw_node()->get_logger();
+
+  property_topic_name_->initialize(context_->getRosNodeAbstraction());
+
   overlay_.reset(new jsk_rviz_plugins::OverlayObject(scene_manager_, logger, ss.str()));
 
   overlay_->show();
