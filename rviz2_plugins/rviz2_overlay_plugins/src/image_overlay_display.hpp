@@ -57,6 +57,7 @@
 #include "jsk_overlay_utils.hpp"
 
 #include <image_transport/image_transport.hpp>
+#include <image_transport/subscriber_filter.hpp>
 #include <rviz_common/properties/color_property.hpp>
 #include <rviz_common/properties/editable_enum_property.hpp>
 #include <rviz_common/properties/enum_property.hpp>
@@ -64,7 +65,6 @@
 #include <rviz_common/properties/int_property.hpp>
 #include <rviz_common/ros_topic_display.hpp>
 
-#include <image_transport/subscriber_filter.h>
 #include <message_filters/subscriber.h>
 #endif
 
