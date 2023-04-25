@@ -21,24 +21,40 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <numeric>
 #include <optional>
-
 namespace pcdless::modularized_particle_filter
 {
 
 class History
 {
 public:
-  History(int max_history_num, int number_of_particles) : max_history_num_(max_history_num)
+  History(int max_history_num, int number_of_particles)
+  : max_history_num_(max_history_num), number_of_particles_(number_of_particles)
   {
     resampling_history_.resize(max_history_num);
 
+    // TODO: Use resampling_history_ as circular buffer
     for (auto & generation : resampling_history_) {
       generation.resize(number_of_particles);
       std::iota(generation.begin(), generation.end(), 0);
     }
+  }
+
+  bool check_history_validity() const
+  {
+    for (auto & generation : resampling_history_) {
+      bool result = std::any_of(generation.begin(), generation.end(), [this](int x) {
+        return x < 0 || x >= number_of_particles_;
+      });
+
+      if (result) {
+        return false;
+      }
+    }
+    return true;
   }
 
   std::vector<int> & operator[](int history_wp)
@@ -55,6 +71,7 @@ private:
   // Number of updates to keep resampling history.
   // Resampling records prior to this will not be kept.
   const int max_history_num_;
+  const int number_of_particles_;
   boost::circular_buffer<std::vector<int>> resampling_history_;
 };
 
@@ -68,10 +85,10 @@ public:
   RetroactiveResampler(
     float resampling_interval_seconds, int number_of_particles, int max_history_num);
 
-  OptParticleArray retroactive_weighting(
+  OptParticleArray add_weight_retroactively(
     const ParticleArray & predicted_particles, const ParticleArray & weighted_particles);
 
-  std::optional<ParticleArray> resampling(const ParticleArray & predicted_particles);
+  std::optional<ParticleArray> resample(const ParticleArray & predicted_particles);
 
 private:
   // The minimum resampling interval is longer than this.
@@ -84,20 +101,17 @@ private:
   const int number_of_particles_;
   //
   rclcpp::Logger logger_;
-
   // Previous resampling time
   std::optional<double> previous_resampling_time_opt_{std::nullopt};
-
   // This is handled like ring buffer.
   // It keeps track of which particles each particle has transformed into at each resampling.
   History resampling_history_;
-
-  // Working Pointer? I guess.
-  int resampling_history_wp_;
+  // Indicates how many times the particles were resampled.
+  int latest_resampling_generation_;
 
   // Random generator from 0 to 1
   double random_from_01_uniformly() const;
-  //
+  // Check the sanity of the particles obtained from the particle corrector.
   bool check_weighted_particles_validity(const ParticleArray & weighted_particles) const;
 };
 }  // namespace pcdless::modularized_particle_filter
