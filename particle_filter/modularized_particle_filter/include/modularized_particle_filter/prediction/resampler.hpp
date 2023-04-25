@@ -52,6 +52,8 @@ public:
   }
 
 private:
+  // Number of updates to keep resampling history.
+  // Resampling records prior to this will not be kept.
   const int max_history_num_;
   boost::circular_buffer<std::vector<int>> resampling_history_;
 };
@@ -62,6 +64,7 @@ public:
   using Particle = modularized_particle_filter_msgs::msg::Particle;
   using ParticleArray = modularized_particle_filter_msgs::msg::ParticleArray;
   using OptParticleArray = std::optional<ParticleArray>;
+
   RetroactiveResampler(
     float resampling_interval_seconds, int number_of_particles, int max_history_num);
 
@@ -75,11 +78,11 @@ private:
   // The minimum resampling interval is longer than this.
   // It is assumed that users will call the resampling() function frequently.
   const float resampling_interval_seconds_;
-  // Number of particles to be managed.
-  const int number_of_particles_;
   // Number of updates to keep resampling history.
   // Resampling records prior to this will not be kept.
   const int max_history_num_;
+  // Number of particles to be managed.
+  const int number_of_particles_;
   //
   rclcpp::Logger logger_;
 
@@ -94,8 +97,6 @@ private:
 
   // Working Pointer? I guess.
   int resampling_history_wp_;
-
-  void initialize_resample_history();
 };
 }  // namespace pcdless::modularized_particle_filter
 
