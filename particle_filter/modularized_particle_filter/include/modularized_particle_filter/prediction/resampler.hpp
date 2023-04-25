@@ -69,8 +69,7 @@ public:
     float resampling_interval_seconds, int number_of_particles, int max_history_num);
 
   OptParticleArray retroactive_weighting(
-    const ParticleArray & predicted_particles,
-    const ParticleArray::ConstSharedPtr & weighted_particles);
+    const ParticleArray & predicted_particles, const ParticleArray & weighted_particles);
 
   std::optional<ParticleArray> resampling(const ParticleArray & predicted_particles);
 
@@ -98,6 +97,8 @@ private:
 
   // Random generator from 0 to 1
   double random_from_01_uniformly() const;
+  //
+  bool check_weighted_particles_validity(const ParticleArray & weighted_particles) const;
 };
 }  // namespace pcdless::modularized_particle_filter
 

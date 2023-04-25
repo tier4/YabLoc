@@ -35,31 +35,50 @@ RetroactiveResampler::RetroactiveResampler(
   resampling_history_wp_ = 0;
 }
 
-RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighting(
-  const ParticleArray & predicted_particles,
-  const ParticleArray::ConstSharedPtr & weighted_particles)
+bool RetroactiveResampler::check_weighted_particles_validity(
+  const ParticleArray & weighted_particles) const
 {
-  assert(static_cast<int>(weighted_particles->particles.size()) == number_of_particles_);
+  if (static_cast<int>(weighted_particles.particles.size()) != number_of_particles_) {
+    return false;
+  }
 
-  //
-  if (!(weighted_particles->id <= resampling_history_wp_ &&                    // not future data
-        weighted_particles->id > resampling_history_wp_ - max_history_num_ &&  // not old data
-        weighted_particles->id >= 0))                                          // not error data
-  {
-    RCLCPP_WARN(logger_, "out of history");
+  // invalid generation
+  if (weighted_particles.id < 0) {
+    RCLCPP_ERROR_STREAM(logger_, "invalid generation id");
+    return false;
+  }
+
+  // future data
+  if (weighted_particles.id > resampling_history_wp_) {
+    RCLCPP_ERROR_STREAM(logger_, "future id");
+    return false;
+  }
+
+  // not too old data
+  if (!(weighted_particles.id > resampling_history_wp_ - max_history_num_)) {
+    RCLCPP_WARN_STREAM(logger_, "out of history due to too old generation");
+    return false;
+  }
+  return true;
+}
+
+RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighting(
+  const ParticleArray & predicted_particles, const ParticleArray & weighted_particles)
+{
+  if (!check_weighted_particles_validity(weighted_particles)) {
     return std::nullopt;
   }
 
   RCLCPP_INFO_STREAM(
     logger_, "current generation " << resampling_history_wp_ << " callback generation "
-                                   << weighted_particles->id);
+                                   << weighted_particles.id);
 
   // Initialize corresponding index lookup table
-  std::vector<int> index_table(weighted_particles->particles.size());
+  std::vector<int> index_table(weighted_particles.particles.size());
   std::iota(index_table.begin(), index_table.end(), 0);
 
   // Lookup corresponding indices
-  for (int history_wp = resampling_history_wp_; history_wp > weighted_particles->id; history_wp--) {
+  for (int history_wp = resampling_history_wp_; history_wp > weighted_particles.id; history_wp--) {
     for (int m = 0; m < number_of_particles_; m++) {
       if (0 <= index_table[m] && index_table[m] < number_of_particles_) {
         index_table[m] = resampling_history_[history_wp][index_table[m]];
@@ -75,7 +94,7 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighti
   // Add weights to current particles
   float sum_weight = 0;
   for (auto && it : reweighted_particles.particles | boost::adaptors::indexed()) {
-    it.value().weight *= weighted_particles->particles[index_table[it.index()]].weight;
+    it.value().weight *= weighted_particles.particles[index_table[it.index()]].weight;
     sum_weight += it.value().weight;
   }
 
