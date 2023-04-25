@@ -15,14 +15,47 @@
 #ifndef MODULARIZED_PARTICLE_FILTER__CORRECTION__RETROACTIVE_RESAMPLER_HPP_
 #define MODULARIZED_PARTICLE_FILTER__CORRECTION__RETROACTIVE_RESAMPLER_HPP_
 
+#include <rclcpp/logger.hpp>
+
 #include "modularized_particle_filter_msgs/msg/particle_array.hpp"
 
+#include <boost/circular_buffer.hpp>
+
 #include <iostream>
+#include <numeric>
 #include <optional>
-namespace pcdless
+
+namespace pcdless::modularized_particle_filter
 {
-namespace modularized_particle_filter
+
+class History
 {
+public:
+  History(int max_history_num, int number_of_particles) : max_history_num_(max_history_num)
+  {
+    resampling_history_.resize(max_history_num);
+
+    for (auto & generation : resampling_history_) {
+      generation.resize(number_of_particles);
+      std::iota(generation.begin(), generation.end(), 0);
+    }
+  }
+
+  std::vector<int> & operator[](int history_wp)
+  {
+    return resampling_history_[history_wp & max_history_num_];
+  }
+
+  const std::vector<int> & operator[](int history_wp) const
+  {
+    return resampling_history_[history_wp & max_history_num_];
+  }
+
+private:
+  const int max_history_num_;
+  boost::circular_buffer<std::vector<int>> resampling_history_;
+};
+
 class RetroactiveResampler
 {
 public:
@@ -47,21 +80,23 @@ private:
   // Number of updates to keep resampling history.
   // Resampling records prior to this will not be kept.
   const int max_history_num_;
+  //
+  rclcpp::Logger logger_;
 
   // Previous resampling time (At the first, it has nullopt)
-  std::optional<double> previous_resampling_time_opt_;
+  std::optional<double> previous_resampling_time_opt_{std::nullopt};
 
   // This is handled like ring buffer.
   // It keeps track of which particles each particle has transformed into at each resampling.
   // NOTE: boost::circle_buffer<std::vector<int>> is better?
-  std::vector<std::vector<int>> resampling_history_;
+  // std::vector<std::vector<int>> resampling_history_;
+  History resampling_history_;
 
   // Working Pointer? I guess.
   int resampling_history_wp_;
 
   void initialize_resample_history();
 };
-}  // namespace modularized_particle_filter
-}  // namespace pcdless
+}  // namespace pcdless::modularized_particle_filter
 
 #endif  // MODULARIZED_PARTICLE_FILTER__CORRECTION__RETROACTIVE_RESAMPLER_HPP_

@@ -19,50 +19,42 @@
 #include <cmath>
 #include <numeric>
 
-namespace pcdless ::modularized_particle_filter
+namespace pcdless::modularized_particle_filter
 {
 RetroactiveResampler::RetroactiveResampler(
   float resampling_interval_seconds, int number_of_particles, int max_history_num)
 : resampling_interval_seconds_(resampling_interval_seconds),
   number_of_particles_(number_of_particles),
-  max_history_num_(max_history_num)
+  max_history_num_(max_history_num),
+  logger_(rclcpp::get_logger("modularized_particle_filter.retroactive_resampler")),
+  resampling_history_(max_history_num_, number_of_particles_)
 {
   initialize_resample_history();
 }
 
-void RetroactiveResampler::initialize_resample_history()
-{
-  resampling_history_.resize(max_history_num_);
-  for (int i = 0; i < max_history_num_; i++) {
-    resampling_history_[i].resize(number_of_particles_);
-    for (int m = 0; m < number_of_particles_; m++) {
-      resampling_history_[i][m] = m;
-    }
-  }
-  resampling_history_wp_ = 0;
-}
+void RetroactiveResampler::initialize_resample_history() { resampling_history_wp_ = 0; }
 
 RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighting(
   const ParticleArray & predicted_particles,
   const ParticleArray::ConstSharedPtr & weighted_particles)
 {
-  rclcpp::Logger logger = rclcpp::get_logger("modularized_particle_filter.retroactive_resampler");
   if (!(weighted_particles->id <= resampling_history_wp_ &&                    // not future data
         weighted_particles->id > resampling_history_wp_ - max_history_num_ &&  // not old data
         weighted_particles->id >= 0))                                          // not error data
   {
-    RCLCPP_WARN(logger, "out of history");
+    RCLCPP_WARN(logger_, "out of history");
     return std::nullopt;
   }
 
-  ParticleArray reweighted_particles{predicted_particles};
+  ParticleArray reweighted_particles = predicted_particles;
 
   RCLCPP_INFO_STREAM(
-    logger, "current generation " << resampling_history_wp_ << " callback generation "
-                                  << weighted_particles->id);
+    logger_, "current generation " << resampling_history_wp_ << " callback generation "
+                                   << weighted_particles->id);
 
   // initialize corresponding index lookup table
-  std::vector<int> index_table(static_cast<int>(weighted_particles->particles.size()));
+  std::vector<int> index_table(weighted_particles->particles.size());
+
   for (int m{0}; m < static_cast<int>(weighted_particles->particles.size()); m++) {
     index_table[m] = m;
   }
@@ -73,7 +65,7 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighti
       if (
         0 <= index_table[m] &&
         index_table[m] < static_cast<int>(weighted_particles->particles.size())) {
-        index_table[m] = resampling_history_[history_wp % max_history_num_][index_table[m]];
+        index_table[m] = resampling_history_[history_wp][index_table[m]];
       } else {
         return std::nullopt;
       }
@@ -93,10 +85,11 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighti
 
   return reweighted_particles;
 }
+
 RetroactiveResampler::OptParticleArray RetroactiveResampler::resampling(
   const ParticleArray & predicted_particles)
 {
-  double current_time{rclcpp::Time(predicted_particles.header.stamp).seconds()};
+  const double current_time{rclcpp::Time(predicted_particles.header.stamp).seconds()};
 
   if (!previous_resampling_time_opt_.has_value()) {
     previous_resampling_time_opt_ = current_time;
@@ -139,7 +132,7 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::resampling(
 
     resampled_particles.particles[m] = predicted_particles.particles[i];
     resampled_particles.particles[m].weight = num_of_particles_inv;  // TODO:
-    resampling_history_[resampling_history_wp_ % max_history_num_][m] = i;
+    resampling_history_[resampling_history_wp_][m] = i;
   }
 
   previous_resampling_time_opt_ = current_time;
