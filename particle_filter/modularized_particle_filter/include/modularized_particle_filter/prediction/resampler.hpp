@@ -86,17 +86,18 @@ private:
   //
   rclcpp::Logger logger_;
 
-  // Previous resampling time (At the first, it has nullopt)
+  // Previous resampling time
   std::optional<double> previous_resampling_time_opt_{std::nullopt};
 
   // This is handled like ring buffer.
   // It keeps track of which particles each particle has transformed into at each resampling.
-  // NOTE: boost::circle_buffer<std::vector<int>> is better?
-  // std::vector<std::vector<int>> resampling_history_;
   History resampling_history_;
 
   // Working Pointer? I guess.
   int resampling_history_wp_;
+
+  // Random generator from 0 to 1
+  double random_from_01_uniformly() const;
 };
 }  // namespace pcdless::modularized_particle_filter
 

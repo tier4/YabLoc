@@ -20,6 +20,7 @@
 
 #include <cmath>
 #include <numeric>
+#include <random>
 
 namespace pcdless::modularized_particle_filter
 {
@@ -49,28 +50,27 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::retroactive_weighti
     return std::nullopt;
   }
 
-  ParticleArray reweighted_particles = predicted_particles;
-
   RCLCPP_INFO_STREAM(
     logger_, "current generation " << resampling_history_wp_ << " callback generation "
                                    << weighted_particles->id);
 
-  // initialize corresponding index lookup table
+  // Initialize corresponding index lookup table
   std::vector<int> index_table(weighted_particles->particles.size());
   std::iota(index_table.begin(), index_table.end(), 0);
 
-  // lookup corresponding indices
-  for (int history_wp{resampling_history_wp_}; history_wp > weighted_particles->id; history_wp--) {
-    for (int m{0}; m < static_cast<int>(weighted_particles->particles.size()); m++) {
-      if (
-        0 <= index_table[m] &&
-        index_table[m] < static_cast<int>(weighted_particles->particles.size())) {
+  // Lookup corresponding indices
+  for (int history_wp = resampling_history_wp_; history_wp > weighted_particles->id; history_wp--) {
+    for (int m = 0; m < number_of_particles_; m++) {
+      if (0 <= index_table[m] && index_table[m] < number_of_particles_) {
         index_table[m] = resampling_history_[history_wp][index_table[m]];
       } else {
+        RCLCPP_ERROR_STREAM(logger_, "resampling_hisotry or index_table must be broken");
         return std::nullopt;
       }
     }
   }
+
+  ParticleArray reweighted_particles = predicted_particles;
 
   // Add weights to current particles
   float sum_weight = 0;
@@ -98,7 +98,8 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::resampling(
     return std::nullopt;
   }
 
-  //
+  // TODO: When this function is called, always it should resamples. We should manage resampling
+  // interval outside of this function.
   if (current_time - previous_resampling_time_opt_.value() <= resampling_interval_seconds_) {
     return std::nullopt;
   }
@@ -107,41 +108,59 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::resampling(
   resampling_history_wp_++;
   resampled_particles.id = resampling_history_wp_;
 
-  //
+  // Summation of current weights
   const double sum_weight = std::accumulate(
     predicted_particles.particles.begin(), predicted_particles.particles.end(), 0.0,
     [](double weight, const Particle & ps) { return weight + ps.weight; });
-  //
+  // Inverse of the summation of current weight
   const double sum_weight_inv = 1.0 / sum_weight;
-  //
+  // Inverse of the number of particle
   const double num_of_particles_inv = 1.0 / static_cast<double>(number_of_particles_);
-  //
-  const double r = rand() / static_cast<double>(RAND_MAX) * num_of_particles_inv;
+  // A residual term for a random selection of particle sampling thresholds.
+  // This can range from 0 to 1/(num_of_particles)
+  const double weight_threshold_residual = random_from_01_uniformly() * num_of_particles_inv;
 
   if (!std::isfinite(sum_weight_inv)) {
     RCLCPP_ERROR_STREAM(logger_, "The inverse of the sum of the weights is not a valid value");
     exit(EXIT_FAILURE);
   }
 
-  double c = predicted_particles.particles[0].weight * sum_weight_inv;
+  auto n_th_normalized_weight = [&](int index) -> double {
+    return predicted_particles.particles.at(index).weight * sum_weight_inv;
+  };
 
-  int i = 0;
-  for (int m{0}; m < static_cast<int>(predicted_particles.particles.size()); m++) {
-    const double u{r + m * num_of_particles_inv};
+  //
+  int predicted_particle_index = 0;
+  double accumulated_normzlied_weights = n_th_normalized_weight(0);
+  // Here, 'm' means resampled_particle_index
+  for (int m = 0; m < number_of_particles_; m++) {
+    const double m_th_weight_threshold = m * num_of_particles_inv + weight_threshold_residual;
 
-    while (c < u) {
-      i++;
-      c += predicted_particles.particles[i].weight * sum_weight_inv;
+    // Accumulate predicted particles' weight until it exceeds the threshold
+    // (If the previous weights are sufficiently large, this accumulation can be skipped over
+    // several resampled particles. It means that a probable particle will make many successors.)
+    while (accumulated_normzlied_weights < m_th_weight_threshold) {
+      predicted_particle_index++;
+      accumulated_normzlied_weights += n_th_normalized_weight(predicted_particle_index);
     }
-
-    resampled_particles.particles[m] = predicted_particles.particles[i];
-    resampled_particles.particles[m].weight = num_of_particles_inv;  // TODO:
-    resampling_history_[resampling_history_wp_][m] = i;
+    // Copy particle to resampled variable
+    resampled_particles.particles[m] = predicted_particles.particles[predicted_particle_index];
+    // Reset weight uniformly
+    resampled_particles.particles[m].weight = num_of_particles_inv;
+    // Make history
+    resampling_history_[resampling_history_wp_][m] = predicted_particle_index;
   }
 
   previous_resampling_time_opt_ = current_time;
 
   return resampled_particles;
+}
+
+double RetroactiveResampler::random_from_01_uniformly() const
+{
+  static std::default_random_engine engine(0);
+  std::uniform_real_distribution<double> dist(0.0, 1.0);
+  return dist(engine);
 }
 
 }  // namespace pcdless::modularized_particle_filter
