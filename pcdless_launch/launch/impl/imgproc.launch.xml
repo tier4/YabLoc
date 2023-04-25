@@ -30,6 +30,8 @@
 
         <remap from="src_image" to="$(var src_image)"/>
         <remap from="src_info" to="$(var src_info)"/>
+        <remap from="resized_image" to="$(var resized_image)"/>
+        <remap from="resized_info" to="$(var resized_info)"/>
     </node>
 
     <!-- line segment detector -->
