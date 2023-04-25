@@ -19,8 +19,6 @@
 
 #include "modularized_particle_filter_msgs/msg/particle_array.hpp"
 
-#include <boost/circular_buffer.hpp>
-
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -36,7 +34,6 @@ public:
   {
     resampling_history_.resize(max_history_num);
 
-    // TODO: Use resampling_history_ as circular buffer
     for (auto & generation : resampling_history_) {
       generation.resize(number_of_particles);
       std::iota(generation.begin(), generation.end(), 0);
@@ -57,14 +54,14 @@ public:
     return true;
   }
 
-  std::vector<int> & operator[](int history_wp)
+  std::vector<int> & operator[](int generation_id)
   {
-    return resampling_history_[history_wp & max_history_num_];
+    return resampling_history_.at(generation_id % max_history_num_);
   }
 
-  const std::vector<int> & operator[](int history_wp) const
+  const std::vector<int> & operator[](int generation_id) const
   {
-    return resampling_history_[history_wp & max_history_num_];
+    return resampling_history_.at(generation_id % max_history_num_);
   }
 
 private:
@@ -72,7 +69,7 @@ private:
   // Resampling records prior to this will not be kept.
   const int max_history_num_;
   const int number_of_particles_;
-  boost::circular_buffer<std::vector<int>> resampling_history_;
+  std::vector<std::vector<int>> resampling_history_;
 };
 
 class RetroactiveResampler

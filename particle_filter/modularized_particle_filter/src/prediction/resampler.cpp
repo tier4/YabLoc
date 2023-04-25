@@ -50,13 +50,13 @@ bool RetroactiveResampler::check_weighted_particles_validity(
 
   // future data
   if (weighted_particles.id > latest_resampling_generation_) {
-    RCLCPP_ERROR_STREAM(logger_, "future id");
+    RCLCPP_ERROR_STREAM(logger_, "future generation id");
     return false;
   }
 
   // not too old data
   if (!(weighted_particles.id > latest_resampling_generation_ - max_history_num_)) {
-    RCLCPP_WARN_STREAM(logger_, "out of history due to too old generation");
+    RCLCPP_WARN_STREAM(logger_, "too old generation id");
     return false;
   }
   return true;
