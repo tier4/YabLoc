@@ -79,18 +79,14 @@ public:
   using ParticleArray = modularized_particle_filter_msgs::msg::ParticleArray;
   using OptParticleArray = std::optional<ParticleArray>;
 
-  RetroactiveResampler(
-    float resampling_interval_seconds, int number_of_particles, int max_history_num);
+  RetroactiveResampler(int number_of_particles, int max_history_num);
 
   OptParticleArray add_weight_retroactively(
     const ParticleArray & predicted_particles, const ParticleArray & weighted_particles);
 
-  std::optional<ParticleArray> resample(const ParticleArray & predicted_particles);
+  ParticleArray resample(const ParticleArray & predicted_particles);
 
 private:
-  // The minimum resampling interval is longer than this.
-  // It is assumed that users will call the resampling() function frequently.
-  const float resampling_interval_seconds_;
   // Number of updates to keep resampling history.
   // Resampling records prior to this will not be kept.
   const int max_history_num_;
@@ -98,8 +94,6 @@ private:
   const int number_of_particles_;
   //
   rclcpp::Logger logger_;
-  // Previous resampling time
-  std::optional<double> previous_resampling_time_opt_{std::nullopt};
   // This is handled like ring buffer.
   // It keeps track of which particles each particle has transformed into at each resampling.
   History resampling_history_;

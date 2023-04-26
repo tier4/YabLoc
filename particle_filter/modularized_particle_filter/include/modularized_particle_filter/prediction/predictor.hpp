@@ -66,6 +66,7 @@ private:
 
   const bool visualize_;
   const int number_of_particles_;
+  // The minimum resampling interval is longer than this.
   const float resampling_interval_seconds_;
   const float static_linear_covariance_;
   const float static_angular_covariance_;
@@ -76,6 +77,7 @@ private:
   std::shared_ptr<RetroactiveResampler> resampler_ptr_{nullptr};
   std::optional<ParticleArray> particle_array_opt_{std::nullopt};
   std::optional<TwistCovStamped> twist_opt_{std::nullopt};
+  std::optional<double> previous_resampling_time_opt_{std::nullopt};
 
   // Callback
   void on_gnss_pose(const PoseStamped::ConstSharedPtr initialpose);

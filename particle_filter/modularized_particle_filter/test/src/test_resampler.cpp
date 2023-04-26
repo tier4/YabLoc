@@ -29,7 +29,7 @@ constexpr int HISTORY_SIZE = 10;
 
 TEST(ResamplerTestSuite, ourOfHistory)
 {
-  mpf::RetroactiveResampler resampler(RESAMPLE_INTERVAL, PARTICLE_COUNT, HISTORY_SIZE);
+  mpf::RetroactiveResampler resampler(PARTICLE_COUNT, HISTORY_SIZE);
   ParticleArray predicted;
   ParticleArray weighted;
 
@@ -40,12 +40,6 @@ TEST(ResamplerTestSuite, ourOfHistory)
   weighted.particles.resize(PARTICLE_COUNT);
   for (auto & p : predicted.particles) p.weight = 1;
   for (auto & p : weighted.particles) p.weight = 1;
-
-  // First resampling must fail
-  {
-    OptParticleArray opt_array = resampler.resample(predicted);
-    EXPECT_FALSE(opt_array.has_value());
-  }
 
   // Invalid generation
   {
@@ -63,11 +57,9 @@ TEST(ResamplerTestSuite, ourOfHistory)
 
   // Repease resampling to fill all history
   for (int t = 0; t < HISTORY_SIZE; ++t) {
-    predicted.header.stamp = rclcpp::Time((RESAMPLE_INTERVAL + 1) * (t + 1), 0);
-    auto opt = resampler.resample(predicted);
-    EXPECT_TRUE(opt.has_value());
-    EXPECT_EQ(opt->id, t + 1);
-    predicted = opt.value();
+    auto resampled = resampler.resample(predicted);
+    EXPECT_EQ(resampled.id, t + 1);
+    predicted = resampled;
   }
 
   // Too old generation
@@ -80,7 +72,7 @@ TEST(ResamplerTestSuite, ourOfHistory)
 
 TEST(ResamplerTestSuite, simpleResampling)
 {
-  mpf::RetroactiveResampler resampler(RESAMPLE_INTERVAL, PARTICLE_COUNT, HISTORY_SIZE);
+  mpf::RetroactiveResampler resampler(PARTICLE_COUNT, HISTORY_SIZE);
 
   ParticleArray predicted;
   predicted.header.stamp = rclcpp::Time(0);
@@ -90,12 +82,6 @@ TEST(ResamplerTestSuite, simpleResampling)
 
   ParticleArray weighted;
   weighted.particles.resize(PARTICLE_COUNT);
-
-  // First resampling must fail
-  {
-    OptParticleArray opt_array = resampler.resample(predicted);
-    EXPECT_FALSE(opt_array.has_value());
-  }
 
   // Update by uniform distribution
   {
@@ -111,9 +97,8 @@ TEST(ResamplerTestSuite, simpleResampling)
     // Resample
     predicted = opt_array1.value();
     predicted.header.stamp = rclcpp::Time(RESAMPLE_INTERVAL + 1, 0);
-    OptParticleArray opt_array2 = resampler.resample(predicted);
-    EXPECT_TRUE(opt_array2.has_value());
-    predicted = opt_array2.value();
+    auto resampled = resampler.resample(predicted);
+    predicted = resampled;
     EXPECT_EQ(predicted.id, 1);
   }
 
@@ -148,9 +133,8 @@ TEST(ResamplerTestSuite, simpleResampling)
     // Resample
     predicted = opt_array1.value();
     predicted.header.stamp = rclcpp::Time(2 * (RESAMPLE_INTERVAL + 1), 0);
-    OptParticleArray opt_array2 = resampler.resample(predicted);
-    EXPECT_TRUE(opt_array2.has_value());
-    predicted = opt_array2.value();
+    auto resampled = resampler.resample(predicted);
+    predicted = resampled;
     EXPECT_EQ(predicted.id, 2);
 
     int centroid = 0;
@@ -161,7 +145,7 @@ TEST(ResamplerTestSuite, simpleResampling)
 
 TEST(ResamplerTestSuite, resamplingWithRetrogression)
 {
-  mpf::RetroactiveResampler resampler(RESAMPLE_INTERVAL, PARTICLE_COUNT, HISTORY_SIZE);
+  mpf::RetroactiveResampler resampler(PARTICLE_COUNT, HISTORY_SIZE);
 
   ParticleArray predicted;
   predicted.header.stamp = rclcpp::Time(0);
@@ -177,18 +161,11 @@ TEST(ResamplerTestSuite, resamplingWithRetrogression)
       p.pose.position.x = -1;
   }
 
-  // First resampling must fail
-  {
-    OptParticleArray opt_array = resampler.resample(predicted);
-    EXPECT_FALSE(opt_array.has_value());
-  }
-
   // Fill all history with biased weighted particles
   for (int p = 0; p < HISTORY_SIZE; ++p) {
     predicted.header.stamp = rclcpp::Time((RESAMPLE_INTERVAL + 1) * (p + 1), 0);
-    auto opt_array = resampler.resample(predicted);
-    EXPECT_TRUE(opt_array.has_value());
-    predicted = opt_array.value();
+    auto resampled = resampler.resample(predicted);
+    predicted = resampled;
     EXPECT_EQ(predicted.id, p + 1);
   }
 

@@ -24,10 +24,8 @@
 
 namespace pcdless::modularized_particle_filter
 {
-RetroactiveResampler::RetroactiveResampler(
-  float resampling_interval_seconds, int number_of_particles, int max_history_num)
-: resampling_interval_seconds_(resampling_interval_seconds),
-  max_history_num_(max_history_num),
+RetroactiveResampler::RetroactiveResampler(int number_of_particles, int max_history_num)
+: max_history_num_(max_history_num),
   number_of_particles_(number_of_particles),
   logger_(rclcpp::get_logger("modularized_particle_filter.retroactive_resampler")),
   resampling_history_(max_history_num_, number_of_particles)
@@ -103,23 +101,9 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::add_weight_retroact
   return reweighted_particles;
 }
 
-RetroactiveResampler::OptParticleArray RetroactiveResampler::resample(
+RetroactiveResampler::ParticleArray RetroactiveResampler::resample(
   const ParticleArray & predicted_particles)
 {
-  const double current_time = rclcpp::Time(predicted_particles.header.stamp).seconds();
-
-  // Exit if previous resampling time is not valid.
-  if (!previous_resampling_time_opt_.has_value()) {
-    previous_resampling_time_opt_ = current_time;
-    return std::nullopt;
-  }
-
-  // TODO: When this function is called, always it should resamples. We should manage resampling
-  // interval outside of this function.
-  if (current_time - previous_resampling_time_opt_.value() <= resampling_interval_seconds_) {
-    return std::nullopt;
-  }
-
   ParticleArray resampled_particles{predicted_particles};
   latest_resampling_generation_++;
   resampled_particles.id = latest_resampling_generation_;
@@ -170,10 +154,8 @@ RetroactiveResampler::OptParticleArray RetroactiveResampler::resample(
   // NOTE: This check wastes the computation time
   if (!resampling_history_.check_history_validity()) {
     RCLCPP_ERROR_STREAM(logger_, "resampling_hisotry may be broken");
-    return std::nullopt;
+    throw std::runtime_error("resampling_hisotry may be broken");
   }
-
-  previous_resampling_time_opt_ = current_time;
 
   return resampled_particles;
 }
