@@ -68,10 +68,6 @@ RetroactiveResampler::ParticleArray RetroactiveResampler::add_weight_retroactive
     throw std::runtime_error("weighted_particles has invalid data");
   }
 
-  RCLCPP_INFO_STREAM(
-    logger_, "current generation " << latest_resampling_generation_ << " callback generation "
-                                   << weighted_particles.id);
-
   // Initialize corresponding index lookup table
   // The m-th addres has the m-th particle's parent index
   std::vector<int> index_table(weighted_particles.particles.size());
