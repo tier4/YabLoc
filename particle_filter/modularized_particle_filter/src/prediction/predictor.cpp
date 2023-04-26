@@ -288,21 +288,15 @@ void Predictor::on_timer()
 
 void Predictor::on_weighted_particles(const ParticleArray::ConstSharedPtr weighted_particles_ptr)
 {
-  // ==========================================================================
-  // From here, weighting section
-
   // NOTE: **We need not to check particle_array_opt.has_value().**
   // Since the weighted_particles is generated from messages published from this node,
   // the particle_array must have an entity in this function.
   ParticleArray particle_array = particle_array_opt_.value();
 
-  OptParticleArray retroactive_weighted_particles =
+  // ==========================================================================
+  // From here, weighting section
+  particle_array =
     resampler_ptr_->add_weight_retroactively(particle_array, *weighted_particles_ptr);
-
-  if (retroactive_weighted_particles.has_value()) {
-    // TODO: Why does it copy only particles. Why do not copy all members including header and id
-    particle_array.particles = retroactive_weighted_particles.value().particles;
-  }
 
   // ==========================================================================
   // From here, resampling section
@@ -331,6 +325,7 @@ void Predictor::on_weighted_particles(const ParticleArray::ConstSharedPtr weight
     // Do nothing (just skipping the resample())
   }
 
+  // ==========================================================================
   particle_array_opt_ = particle_array;
 }
 

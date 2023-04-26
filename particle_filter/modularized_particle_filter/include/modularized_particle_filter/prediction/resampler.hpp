@@ -77,11 +77,10 @@ class RetroactiveResampler
 public:
   using Particle = modularized_particle_filter_msgs::msg::Particle;
   using ParticleArray = modularized_particle_filter_msgs::msg::ParticleArray;
-  using OptParticleArray = std::optional<ParticleArray>;
 
   RetroactiveResampler(int number_of_particles, int max_history_num);
 
-  OptParticleArray add_weight_retroactively(
+  ParticleArray add_weight_retroactively(
     const ParticleArray & predicted_particles, const ParticleArray & weighted_particles);
 
   ParticleArray resample(const ParticleArray & predicted_particles);

@@ -60,11 +60,12 @@ bool RetroactiveResampler::check_weighted_particles_validity(
   return true;
 }
 
-RetroactiveResampler::OptParticleArray RetroactiveResampler::add_weight_retroactively(
+RetroactiveResampler::ParticleArray RetroactiveResampler::add_weight_retroactively(
   const ParticleArray & predicted_particles, const ParticleArray & weighted_particles)
 {
   if (!check_weighted_particles_validity(weighted_particles)) {
-    return std::nullopt;
+    RCLCPP_ERROR_STREAM(logger_, "weighted_particles has invalid data");
+    throw std::runtime_error("weighted_particles has invalid data");
   }
 
   RCLCPP_INFO_STREAM(
@@ -122,7 +123,7 @@ RetroactiveResampler::ParticleArray RetroactiveResampler::resample(
 
   if (!std::isfinite(sum_weight_inv)) {
     RCLCPP_ERROR_STREAM(logger_, "The inverse of the sum of the weights is not a valid value");
-    exit(EXIT_FAILURE);
+    throw std::runtime_error("weighted_particles has invalid data");
   }
 
   auto n_th_normalized_weight = [&](int index) -> double {

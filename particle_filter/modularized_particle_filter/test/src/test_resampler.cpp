@@ -21,13 +21,11 @@
 namespace mpf = pcdless::modularized_particle_filter;
 using Particle = modularized_particle_filter_msgs::msg::Particle;
 using ParticleArray = modularized_particle_filter_msgs::msg::ParticleArray;
-using OptParticleArray = std::optional<ParticleArray>;
 
-constexpr int RESAMPLE_INTERVAL = 5;
 constexpr int PARTICLE_COUNT = 10;
 constexpr int HISTORY_SIZE = 10;
 
-TEST(ResamplerTestSuite, ourOfHistory)
+TEST(ResamplerTestSuite, outOfHistory)
 {
   mpf::RetroactiveResampler resampler(PARTICLE_COUNT, HISTORY_SIZE);
   ParticleArray predicted;
@@ -44,15 +42,25 @@ TEST(ResamplerTestSuite, ourOfHistory)
   // Invalid generation
   {
     weighted.id = -1;
-    auto opt = resampler.add_weight_retroactively(predicted, weighted);
-    EXPECT_FALSE(opt.has_value());
+    bool catched = false;
+    try {
+      resampler.add_weight_retroactively(predicted, weighted);
+    } catch (...) {
+      catched = true;
+    }
+    EXPECT_TRUE(catched);
   }
 
   // Future generation
   {
     weighted.id = 1;
-    auto opt = resampler.add_weight_retroactively(predicted, weighted);
-    EXPECT_FALSE(opt.has_value());
+    bool catched = false;
+    try {
+      resampler.add_weight_retroactively(predicted, weighted);
+    } catch (...) {
+      catched = true;
+    }
+    EXPECT_TRUE(catched);
   }
 
   // Repease resampling to fill all history
@@ -65,8 +73,13 @@ TEST(ResamplerTestSuite, ourOfHistory)
   // Too old generation
   {
     weighted.id = 0;
-    auto opt = resampler.add_weight_retroactively(predicted, weighted);
-    EXPECT_FALSE(opt.has_value());
+    bool catched = false;
+    try {
+      resampler.add_weight_retroactively(predicted, weighted);
+    } catch (...) {
+      catched = true;
+    }
+    EXPECT_TRUE(catched);
   }
 }
 
@@ -88,15 +101,13 @@ TEST(ResamplerTestSuite, simpleResampling)
     // Weight
     weighted.id = 0;
     for (int i = 0; i < PARTICLE_COUNT; ++i) weighted.particles.at(i).weight = 0.5;
-    OptParticleArray opt_array1 = resampler.add_weight_retroactively(predicted, weighted);
-    EXPECT_TRUE(opt_array1.has_value());
+    ParticleArray array1 = resampler.add_weight_retroactively(predicted, weighted);
 
     // All weights must be equal
-    for (const auto & p : opt_array1->particles) EXPECT_NEAR(p.weight, 1.0 / PARTICLE_COUNT, 1e-3);
+    for (const auto & p : array1.particles) EXPECT_NEAR(p.weight, 1.0 / PARTICLE_COUNT, 1e-3);
 
     // Resample
-    predicted = opt_array1.value();
-    predicted.header.stamp = rclcpp::Time(RESAMPLE_INTERVAL + 1, 0);
+    predicted = array1;
     auto resampled = resampler.resample(predicted);
     predicted = resampled;
     EXPECT_EQ(predicted.id, 1);
@@ -117,12 +128,11 @@ TEST(ResamplerTestSuite, simpleResampling)
         q.weight = 1.0;
       }
     }
-    OptParticleArray opt_array1 = resampler.add_weight_retroactively(predicted, weighted);
-    EXPECT_TRUE(opt_array1.has_value());
+    ParticleArray array1 = resampler.add_weight_retroactively(predicted, weighted);
 
     // All weight must match with following exepection
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
-      const auto & p = opt_array1->particles.at(i);
+      const auto & p = array1.particles.at(i);
       if (i < PARTICLE_COUNT / 2) {
         EXPECT_NEAR(p.weight, 2.0 / 1.5 / PARTICLE_COUNT, 1e-3f);
       } else {
@@ -131,8 +141,7 @@ TEST(ResamplerTestSuite, simpleResampling)
     }
 
     // Resample
-    predicted = opt_array1.value();
-    predicted.header.stamp = rclcpp::Time(2 * (RESAMPLE_INTERVAL + 1), 0);
+    predicted = array1;
     auto resampled = resampler.resample(predicted);
     predicted = resampled;
     EXPECT_EQ(predicted.id, 2);
@@ -163,7 +172,6 @@ TEST(ResamplerTestSuite, resamplingWithRetrogression)
 
   // Fill all history with biased weighted particles
   for (int p = 0; p < HISTORY_SIZE; ++p) {
-    predicted.header.stamp = rclcpp::Time((RESAMPLE_INTERVAL + 1) * (p + 1), 0);
     auto resampled = resampler.resample(predicted);
     predicted = resampled;
     EXPECT_EQ(predicted.id, p + 1);
@@ -188,9 +196,8 @@ TEST(ResamplerTestSuite, resamplingWithRetrogression)
         q.weight = 1.0;
       }
     }
-    OptParticleArray opt_array = resampler.add_weight_retroactively(predicted, weighted);
-    EXPECT_TRUE(opt_array.has_value());
-    predicted = opt_array.value();
+
+    predicted = resampler.add_weight_retroactively(predicted, weighted);
 
     double after_centroid = 0;
     for (const auto & p : predicted.particles) {
