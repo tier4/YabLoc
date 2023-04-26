@@ -9,8 +9,6 @@
     <arg name="src_info_0" default="/sensing/camera/camera0/camera_info"/>
     <arg name="src_image_1" default="/sensing/camera/camera1/image_rect_color/compressed"/>
     <arg name="src_info_1" default="/sensing/camera/camera1/camera_info"/>
-    <arg name="src_image_2" default="/sensing/camera/camera5/image_rect_color/compressed"/>
-    <arg name="src_info_2" default="/sensing/camera/camera5/camera_info"/>
     <arg name="resized_image_0" default="/sensing/camera/undistorted_0/image_raw"/>
     <arg name="resized_info_0" default="/sensing/camera/undistorted_0/camera_info"/>
     <arg name="resized_image_1" default="/sensing/camera/undistorted_1/image_raw"/>
