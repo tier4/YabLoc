@@ -95,14 +95,15 @@ void Predictor::initialize_particles(const PoseCovStamped & initialpose)
   cov(1, 1) = initialpose.pose.covariance[6 * 1 + 1];
 
   const double yaw = tf2::getYaw(initialpose.pose.pose.orientation);
+  const double yaw_std = std::sqrt(initialpose.pose.covariance[6 * 5 + 5]);
+
   for (auto & particle : particle_array.particles) {
     geometry_msgs::msg::Pose pose = initialpose.pose.pose;
     const Eigen::Vector2d noise = util::nrand_2d(cov);
     pose.position.x += noise.x();
     pose.position.y += noise.y();
 
-    float noised_yaw =
-      util::normalize_radian(yaw + util::nrand(sqrt(initialpose.pose.covariance[6 * 5 + 5])));
+    float noised_yaw = util::normalize_radian(yaw + util::nrand(yaw_std));
     pose.orientation.w = std::cos(noised_yaw / 2.0);
     pose.orientation.x = 0.0;
     pose.orientation.y = 0.0;
@@ -135,21 +136,24 @@ void Predictor::on_twist(const TwistStamped::ConstSharedPtr twist)
 void Predictor::update_with_dynamic_noise(
   ParticleArray & particle_array, const TwistCovStamped & twist, double dt)
 {
+  // linear & angular velocity
   const float linear_x = twist.twist.twist.linear.x;
   const float angular_z = twist.twist.twist.angular.z;
+  // standard deviation of linear & angular velocity
   const float std_linear_x = std::sqrt(twist.twist.covariance[6 * 0 + 0]);
   const float std_angular_z = std::sqrt(twist.twist.covariance[6 * 5 + 5]);
-
-  const float truncated_gain = std::clamp(std::sqrt(std::abs(linear_x)), 0.1f, 1.0f);
+  // 1[rad/s] = 60[deg/s]
+  // 1[m/s] = 3.6[km/h]
+  const float truncated_angular_std =
+    std_angular_z * std::clamp(std::sqrt(std::abs(linear_x)), 0.1f, 1.0f);
   const float truncated_linear_std = std::clamp(std_linear_x * linear_x, 0.1f, 2.0f);
 
-  using util::nrand;
   for (auto & particle : particle_array.particles) {
     Sophus::SE3f se3_pose = common::pose_to_se3(particle.pose);
     Eigen::Matrix<float, 6, 1> noised_xi;
     noised_xi.setZero();
-    noised_xi(0) = linear_x + nrand(truncated_linear_std);
-    noised_xi(5) = angular_z + nrand(std_angular_z * truncated_gain);
+    noised_xi(0) = linear_x + util::nrand(truncated_linear_std);
+    noised_xi(5) = angular_z + util::nrand(truncated_angular_std);
     se3_pose *= Sophus::SE3f::exp(noised_xi * dt);
 
     geometry_msgs::msg::Pose pose = common::se3_to_pose(se3_pose);
