@@ -12,56 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MODULARIZED_PARTICLE_FILTER__CORRECTION__RETROACTIVE_RESAMPLER_HPP_
-#define MODULARIZED_PARTICLE_FILTER__CORRECTION__RETROACTIVE_RESAMPLER_HPP_
+#ifndef MODULARIZED_PARTICLE_FILTER__PREDICTION__RESAMPLER_HPP_
+#define MODULARIZED_PARTICLE_FILTER__PREDICTION__RESAMPLER_HPP_
+
+#include "modularized_particle_filter/prediction/resampling_history.hpp"
+
+#include <rclcpp/logger.hpp>
 
 #include "modularized_particle_filter_msgs/msg/particle_array.hpp"
 
-#include <iostream>
-#include <optional>
-namespace pcdless
-{
-namespace modularized_particle_filter
+namespace pcdless::modularized_particle_filter
 {
 class RetroactiveResampler
 {
 public:
   using Particle = modularized_particle_filter_msgs::msg::Particle;
   using ParticleArray = modularized_particle_filter_msgs::msg::ParticleArray;
-  using OptParticleArray = std::optional<ParticleArray>;
-  RetroactiveResampler(
-    float resampling_interval_seconds, int number_of_particles, int max_history_num);
 
-  OptParticleArray retroactive_weighting(
-    const ParticleArray & predicted_particles,
-    const ParticleArray::ConstSharedPtr & weighted_particles);
+  RetroactiveResampler(int number_of_particles, int max_history_num);
 
-  std::optional<ParticleArray> resampling(const ParticleArray & predicted_particles);
+  ParticleArray add_weight_retroactively(
+    const ParticleArray & predicted_particles, const ParticleArray & weighted_particles);
+
+  ParticleArray resample(const ParticleArray & predicted_particles);
 
 private:
-  // The minimum resampling interval is longer than this.
-  // It is assumed that users will call the resampling() function frequently.
-  const float resampling_interval_seconds_;
-  // Number of particles to be managed.
-  const int number_of_particles_;
   // Number of updates to keep resampling history.
   // Resampling records prior to this will not be kept.
   const int max_history_num_;
-
-  // Previous resampling time (At the first, it has nullopt)
-  std::optional<double> previous_resampling_time_opt_;
-
+  // Number of particles to be managed.
+  const int number_of_particles_;
+  // ROS logger
+  rclcpp::Logger logger_;
   // This is handled like ring buffer.
   // It keeps track of which particles each particle has transformed into at each resampling.
-  // NOTE: boost::circle_buffer<std::vector<int>> is better?
-  std::vector<std::vector<int>> resampling_history_;
+  ResamplingHistory resampling_history_;
+  // Indicates how many times the particles were resampled.
+  int latest_resampling_generation_;
 
-  // Working Pointer? I guess.
-  int resampling_history_wp_;
-
-  void initialize_resample_history();
+  // Random generator from 0 to 1
+  double random_from_01_uniformly() const;
+  // Check the sanity of the particles obtained from the particle corrector.
+  bool check_weighted_particles_validity(const ParticleArray & weighted_particles) const;
 };
-}  // namespace modularized_particle_filter
-}  // namespace pcdless
+}  // namespace pcdless::modularized_particle_filter
 
-#endif  // MODULARIZED_PARTICLE_FILTER__CORRECTION__RETROACTIVE_RESAMPLER_HPP_
+#endif  // MODULARIZED_PARTICLE_FILTER__PREDICTION__RESAMPLER_HPP_

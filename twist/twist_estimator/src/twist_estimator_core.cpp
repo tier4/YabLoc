@@ -22,7 +22,7 @@
 namespace pcdless::twist_estimator
 {
 TwistEstimator::TwistEstimator()
-: Node("twist_estimaotr"),
+: Node("twist_estimator"),
   upside_down(true),
   ignore_less_than_float_(declare_parameter("ignore_less_than_float", true)),
   stop_vel_threshold_(declare_parameter("stop_vel_threshold", 0.05f)),
@@ -152,8 +152,6 @@ void TwistEstimator::on_velocity_report(const VelocityReport & msg)
   }
   const float wheel = msg.longitudinal_velocity;
   last_wheel_vel_ = wheel;
-
-  if (std::abs(wheel) < stop_vel_threshold_) return;
 
   // Compute error and jacobian
   float error = state_[VELOCITY] - state_[SCALE] * wheel;
