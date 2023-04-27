@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include "segment_filter/image_line_drawing_debugger.hpp"
 #include <opencv4/opencv2/core.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <yabloc_common/camera_info_subscriber.hpp>
@@ -44,14 +45,19 @@ private:
   const float min_segment_length_;
   const float max_segment_distance_;
   const float max_lateral_distance_;
+  const bool publish_debug_image_;
 
   common::CameraInfoSubscriber info_;
   common::SynchroSubscriber<PointCloud2, Image> synchro_subscriber_;
   common::StaticTfSubscriber tf_subscriber_;
+  rclcpp::Subscription<Image>::SharedPtr sub_undistorted_image_;
 
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_cloud_;
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_middle_cloud_;
   rclcpp::Publisher<Image>::SharedPtr pub_image_;
+  rclcpp::Publisher<Image>::SharedPtr pub_debug_image_;
+
+  std::shared_ptr<ImageLineDrawer> image_line_drawer_;
 
   ProjectFunc project_func_ = nullptr;
 
@@ -68,5 +74,7 @@ private:
   void execute(const PointCloud2 & msg1, const Image & msg2);
 
   bool is_near_element(const pcl::PointNormal & pn, pcl::PointNormal & truncated_pn) const;
+
+  void on_undistorted_image(const Image::ConstSharedPtr image_msg);
 };
 }  // namespace yabloc::segment_filter

@@ -30,6 +30,7 @@ SegmentFilter::SegmentFilter()
   min_segment_length_(declare_parameter<float>("min_segment_length", -1)),
   max_segment_distance_(declare_parameter<float>("max_segment_distance", -1)),
   max_lateral_distance_(declare_parameter<float>("max_lateral_distance", -1)),
+  publish_debug_image_(declare_parameter<bool>("publish_image_with_segment_for_debug", false)),
   info_(this),
   synchro_subscriber_(this, "line_segments_cloud", "mask_image"),
   tf_subscriber_(this->get_clock())
@@ -41,6 +42,14 @@ SegmentFilter::SegmentFilter()
 
   pub_cloud_ = create_publisher<PointCloud2>("projected_line_segments_cloud", 10);
   pub_image_ = create_publisher<Image>("projected_image", 10);
+
+  if (publish_debug_image_)
+  {
+    auto cb_image = std::bind(&SegmentFilter::on_undistorted_image, this, _1);
+    sub_undistorted_image_ = create_subscription<Image>("undistorted_image", 10, cb_image);
+    image_line_drawer_ = std::make_shared<ImageLineDrawer>(10);
+    pub_debug_image_ = create_publisher<Image>("debug/image_with_lines", 10);
+  }
 }
 
 cv::Point2i SegmentFilter::to_cv_point(const Eigen::Vector3f & v) const
@@ -135,6 +144,12 @@ void SegmentFilter::execute(const PointCloud2 & line_segments_msg, const Image &
     }
     common::publish_image(*pub_image_, projected_image, stamp);
   }
+
+  // Raw image with projected lines
+  if (publish_debug_image_) {
+    cv::Mat debug_image = image_line_drawer_->create_debug_image(stamp, line_segments_cloud, indices);
+    common::publish_image(*pub_debug_image_, debug_image, stamp);
+  }
 }
 
 bool SegmentFilter::is_near_element(
@@ -180,7 +195,7 @@ pcl::PointCloud<pcl::PointNormal> SegmentFilter::project_lines(
   bool negative) const
 {
   pcl::PointCloud<pcl::PointNormal> projected_points;
-  for (int index = 0; index < points.size(); ++index) {
+  for (size_t index = 0; index < points.size(); ++index) {
     if (negative) {
       if (indices.count(index) > 0) continue;
     } else {
@@ -257,6 +272,12 @@ std::set<int> SegmentFilter::filt_by_mask(
   }
 
   return reliable_indices;
+}
+
+void SegmentFilter::on_undistorted_image(const Image::ConstSharedPtr image_msg)
+{
+  image_line_drawer_->set_new_image(image_msg);
+  return;
 }
 
 }  // namespace yabloc::segment_filter
