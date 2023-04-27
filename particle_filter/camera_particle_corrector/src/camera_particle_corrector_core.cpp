@@ -21,7 +21,7 @@
 #include <yabloc_common/pose_conversions.hpp>
 #include <yabloc_common/pub_sub.hpp>
 #include <yabloc_common/timer.hpp>
-#include <yabloc_common/transform_lines_egments.hpp>
+#include <yabloc_common/transform_line_segments.hpp>
 
 #include <pcl_conversions/pcl_conversions.h>
 
