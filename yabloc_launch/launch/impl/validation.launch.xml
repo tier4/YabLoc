@@ -39,8 +39,8 @@
     <!-- pose to path -->
     <node name="pose_to_path" pkg="path_monitor" exec="pose_to_path_node" output="log" args="--ros-args --log-level warn">
         <param name="use_sim_time" value="$(var use_sim_time)"/>
-        <param name="sub_topics" value="[/sensing/gnss/ublox/pose,/localization/pf/pose]"/>
-        <param name="pub_topics" value="[/sensing/gnss/ublox/path,/localization/pf/path]"/>
+        <param name="sub_topics" value="[/localization/pf/pose]"/>
+        <param name="pub_topics" value="[/localization/validation/path/pf]"/>
     </node>
 
 </launch>
