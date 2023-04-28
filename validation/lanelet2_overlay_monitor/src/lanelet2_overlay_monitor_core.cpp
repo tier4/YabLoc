@@ -53,7 +53,7 @@ Lanelet2Overlay::Lanelet2Overlay() : Node("lanelet2_overlay"), tf_subscriber_(ge
 
   // Publisher
   pub_vis_ = create_publisher<Marker>("projected_marker", 10);
-  pub_image_ = create_publisher<sensor_msgs::msg::Image>("overlay_image", 10);
+  pub_image_ = create_publisher<sensor_msgs::msg::Image>("lanelet2_overlay_image", 10);
 }
 
 void Lanelet2Overlay::on_info(const CameraInfo & msg)
