@@ -47,10 +47,50 @@
 
         <!-- camera processing -->
         <group if="$(var use_camera_0)">
-            <push-ros-namespace namespace="camera0"/>
+            <push-ros-namespace namespace="camera0/imgproc"/>
             <include file="$(find-pkg-share yabloc_launch)/launch/impl/camera.launch.xml">
                 <arg name="src_image" value="$(var src_image_0)"/>
                 <arg name="src_info" value="$(var src_info_0)"/>
+                <arg name="input_pose" value="$(var input_pose)"/>
+            </include>
+        </group>
+        <group if="$(var use_camera_1)">
+            <push-ros-namespace namespace="camera1/imgproc"/>
+            <include file="$(find-pkg-share yabloc_launch)/launch/impl/camera.launch.xml">
+                <arg name="src_image" value="$(var src_image_1)"/>
+                <arg name="src_info" value="$(var src_info_1)"/>
+                <arg name="input_pose" value="$(var input_pose)"/>
+            </include>
+        </group>
+        <group if="$(var use_camera_2)">
+            <push-ros-namespace namespace="camera2/imgproc"/>
+            <include file="$(find-pkg-share yabloc_launch)/launch/impl/camera.launch.xml">
+                <arg name="src_image" value="$(var src_image_2)"/>
+                <arg name="src_info" value="$(var src_info_2)"/>
+                <arg name="input_pose" value="$(var input_pose)"/>
+            </include>
+        </group>
+        <group if="$(var use_camera_3)">
+            <push-ros-namespace namespace="camera3/imgproc"/>
+            <include file="$(find-pkg-share yabloc_launch)/launch/impl/camera.launch.xml">
+                <arg name="src_image" value="$(var src_image_3)"/>
+                <arg name="src_info" value="$(var src_info_3)"/>
+                <arg name="input_pose" value="$(var input_pose)"/>
+            </include>
+        </group>
+        <group if="$(var use_camera_4)">
+            <push-ros-namespace namespace="camera4/imgproc"/>
+            <include file="$(find-pkg-share yabloc_launch)/launch/impl/camera.launch.xml">
+                <arg name="src_image" value="$(var src_image_4)"/>
+                <arg name="src_info" value="$(var src_info_4)"/>
+                <arg name="input_pose" value="$(var input_pose)"/>
+            </include>
+        </group>
+        <group if="$(var use_camera_5)">
+            <push-ros-namespace namespace="camera5/imgproc"/>
+            <include file="$(find-pkg-share yabloc_launch)/launch/impl/camera.launch.xml">
+                <arg name="src_image" value="$(var src_image_5)"/>
+                <arg name="src_info" value="$(var src_info_5)"/>
                 <arg name="input_pose" value="$(var input_pose)"/>
             </include>
         </group>

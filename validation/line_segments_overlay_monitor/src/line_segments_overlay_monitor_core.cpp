@@ -74,7 +74,7 @@ void LineSegmentsOverlay::on_line_segments(const PointCloud2::ConstSharedPtr& li
 
     cv::Scalar color(0, 255, 0); // Green
     if (pn.label == 0) { // if unreliable
-      color = cv::Scalar(0, 255, 0); // Red
+      color = cv::Scalar(0, 0, 255); // Red
     }
 
     cv::line(image, cv::Point(xy1(0), xy1(1)), cv::Point(xy2(0), xy2(1)), color, 2);
