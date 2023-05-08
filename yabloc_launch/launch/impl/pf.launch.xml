@@ -1,8 +1,6 @@
 <launch>
     <arg name="use_sim_time" default="true"/>
 
-    <arg name="predict_twist" default="/localization/twist/kalman/twist"/>
-    <arg name="predict_twist_cov" default="/localization/twist/disabled/twist_with_cov"/>
 
     <arg name="static_linear_covariance" default="12.00"/>
     <arg name="static_angular_covariance" default="0.005"/>
@@ -13,14 +11,13 @@
     <arg name="gnss_mahalanobis_distance_threshold" default="20.0" description="If the distance to GNSS observation exceeds this, the correction is skipped."/>
 
     <arg name="use_ublox_msg_in_gnss_corrector" default="true" description="Raw sensor data should not be used when running as Autoware."/>
+    <arg name="twist_cov_for_prediction" default="/localization/twist_estimator/twist_with_covariance"/>
 
     <!-- predict update -->
     <arg name="input_initialpose" default="/localization/initializer/rectified/initialpose"/>
 
     <node pkg="modularized_particle_filter" exec="predictor_node" name="predictor_node" output="screen" args="--ros-args --log-level info">
-        <remap from="twist" to="$(var predict_twist)" />
-        <remap from="twist_cov" to="$(var predict_twist_cov)"/>
-
+        <remap from="twist_cov" to="$(var twist_cov_for_prediction)"/>
         <remap from="initialpose" to="$(var input_initialpose)" />
 
         <param name="use_sim_time" value="$(var use_sim_time)"/>
