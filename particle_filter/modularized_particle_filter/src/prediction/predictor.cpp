@@ -193,6 +193,7 @@ void Predictor::on_timer()
   // NOTE: Sometimes particle_array.header.stamp is ancient due to lagged pose_initializer
   if (dt < 0.0 || dt > 1.0) {
     RCLCPP_WARN_STREAM(get_logger(), "time stamp is wrong? " << dt);
+    particle_array_opt_->header.stamp = current_time;
     return;
   }
 
