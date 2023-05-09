@@ -1,6 +1,7 @@
 <launch>
     <arg name="skip_autoware_pose_initializer"/>
     <arg name="initialpose_cov_xx_yy" default="[2.0,0.25]"/>
+    <arg name="resized_info" default="/sensing/camera/undistorted/camera_info"/>
 
     <group if="$(var skip_autoware_pose_initializer)">
         <node name="gnss_pose_initializer_node" pkg="gnss_pose_initializer" exec="gnss_pose_initializer_node" output="screen" args="--ros-args --log-level info">
