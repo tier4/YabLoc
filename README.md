@@ -157,7 +157,13 @@ If doppler (`ublox_msgs/msg/navpvt`) is available and the vehicle moves enough f
 
 ## Architecture
 
+![node_diagram](docs/yabloc_abstruct_architecture.drawio.svg)
+
+<details><summary>click to more detail</summary><div>
+
 ![node_diagram](docs/yabloc_architecture.drawio.svg)
+
+</div></details>
 
 ### Input topics
 
