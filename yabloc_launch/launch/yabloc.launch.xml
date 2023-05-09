@@ -46,7 +46,7 @@
         </group>
 
         <!-- twist -->
-        <group>
+        <group if="$(var standalone)">
             <push-ros-namespace namespace="twist"/>
             <include file="$(find-pkg-share yabloc_launch)/launch/impl/twist.launch.xml"/>
         </group>
