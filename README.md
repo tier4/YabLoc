@@ -57,7 +57,7 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_E
 
 ![how_to_launch_with_rosbag](docs/how_to_launch_quick_start_demo.drawio.svg)
 
-sample rosbag: [Google Drive link](https://drive.google.com/file/d/1UqULyfidxcA5JidfHWAsSqNy8itampAX/view?usp=share_link)
+* sample rosbag: [Google Drive link](https://drive.google.com/file/d/1UqULyfidxcA5JidfHWAsSqNy8itampAX/view?usp=share_link)
 
 ```shell
 # terminal 1
@@ -72,6 +72,11 @@ ros2 launch yabloc_launch rviz.launch.xml
 source install/setup.bash
 ros2 bag play awsim_yabloc_rosbag_sample_0.db3 -s sqlite3
 ```
+
+If YabLoc runs successfully, you will see a screen like the following.
+
+<img src="docs/quick_start_demo_screen.png" width="600">
+
 
 ## Demo with Autoware
 
