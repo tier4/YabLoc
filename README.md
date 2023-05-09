@@ -1,26 +1,33 @@
 # YabLoc
 
-**YabLoc** is vision-baed localization with vector map.
+**YabLoc** is vision-baed localization with vector map. [https://youtu.be/Eaf6r_BNFfk](https://youtu.be/Eaf6r_BNFfk)
 
-This has been developed as a new localization stack for [Autoware](https://github.com/autowarefoundation/autoware).
+Yabloc has been developed as a new localization stack for [Autoware](https://github.com/autowarefoundation/autoware).
 
-![thumbnail](docs/yabloc_thumbnail.jpg)
+[![thumbnail](docs/yabloc_thumbnail.jpg)](https://youtu.be/Eaf6r_BNFfk)
+
 
 ## Installation
 
-### Prerequisites
+### Prerequisite
 
-**Supporting `Ubuntu 22.04` + `ROS2 humble` now.**
+**supporting `Ubuntu 22.04` + `ROS2 humble` now.**
 
-### Submodules
+**NOTE:** Currently, this software is assumed to be built in a separate workspace in order not to contaminate the autoware workspace.
+Someday this will be located in the workspace where Autoware blongs. The following submodules will be removed at the time.
+
+Branches
+
+* [main](https://github.com/tier4/YabLoc/tree/main) is a branch to work with minimal dependence on autoware.
+  * If you want to try the YabLoc demo, please use `main` branch.
+* [autoware(under construction)](https://github.com/tier4/YabLoc/tree/autoware) is a branch made to run as part of Autoware.
+
+Submodules
 
 * [external/autoware_auto_msgs](https://github.com/tier4/autoware_auto_msgs)
 * [external/autoware_msgs](https://github.com/autowarefoundation/autoware_msgs.git)
 * [external/septentrio_gnss_driver](https://github.com/tier4/septentrio_gnss_driver.git)
 * [external/tier4_autoware_msgs](https://github.com/tier4/tier4_autoware_msgs.git)
-
-**NOTE:** Currently, this software is assumed to be built in a separate workspace in order not to contaminate the autoware workspace.
-Someday this will be located in the workspace where Autoware blongs. These submodules will be removed at the time.
 
 ### How to build
 
