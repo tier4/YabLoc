@@ -21,6 +21,9 @@
     <arg name="segment_filter_param_path" default="$(find-pkg-share segment_filter)/config/segment_filter.param.yaml"/>
     <arg name="undistort_param_path" default="$(find-pkg-share undistort)/config/undistort.param.yaml"/>
 
+    <arg name="ground_server_param_path" default="$(find-pkg-share ground_server)/config/ground_server.param.yaml"/>
+    <arg name="ll2_decomposer_param_path" default="$(find-pkg-share ll2_decomposer)/config/ll2_decomposer.param.yaml"/>
+
     <group>
         <push-ros-namespace namespace="localization/yabloc"/>
 
@@ -53,18 +56,18 @@
             </include>
         </group>
 
-        <!-- twist -->
-        <group>
-            <push-ros-namespace namespace="twist"/>
-            <include file="$(find-pkg-share yabloc_launch)/launch/impl/twist.launch.xml"/>
-        </group>
-
         <!-- map -->
         <group>
             <push-ros-namespace namespace="map"/>
             <include file="$(find-pkg-share yabloc_launch)/launch/impl/map.launch.xml">
                 <arg name="input_particle_pose" value="$(var input_pose)"/>
             </include>
+        </group>
+
+        <!-- twist -->
+        <group>
+            <push-ros-namespace namespace="twist"/>
+            <include file="$(find-pkg-share yabloc_launch)/launch/impl/twist.launch.xml"/>
         </group>
 
     </group>

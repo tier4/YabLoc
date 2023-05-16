@@ -11,9 +11,6 @@
         <arg name="static_scale_factor" value="1.00"/>
         <arg name="static_gyro_bias" value="10.0"/>
 
-        <arg name="road_marking_labels" value="[cross_walk, zebra_marking, line_thin, line_thick, pedestrian_marking, stop_line, road_border]"/>
-        <arg name="sign_board_labels" value="[sign-board]"/>
-
         <arg name="use_camera_0" value="true"/>
         <arg name="use_camera_1" value="true"/>
         <arg name="use_camera_2" value="false"/>

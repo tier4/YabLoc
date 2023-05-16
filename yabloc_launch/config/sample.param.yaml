@@ -23,16 +23,6 @@
       enabled_at_first: true
       visualize:
 
-    ll2_decomposer:
-        road_marking_labels: [cross_walk, zebra_marking, line_thin, line_thick, pedestrian_marking, stop_line, road_border]
-        sign_board_labels: [sign-board]
-        bounding_box_labels: []
-
-    ground_server:
-      force_zero_tilt: false
-      K: 50
-      R: 10
-
     twist_estimator:
       stop_vel_threshold: 0.05
       static_scale_factor: -1.0
