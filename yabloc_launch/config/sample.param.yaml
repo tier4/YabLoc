@@ -1,9 +1,6 @@
 /**: 
   ros__parameters:
 
-    # =============================================
-    # particle filter
-    # =============================================
     particle_predictor:
       static_linear_covariance: 0.04
       static_angular_covariance: 0.006
@@ -26,18 +23,6 @@
       enabled_at_first: true
       visualize:
 
-    # =============================================
-    # pose initalizer
-    # =============================================
-    particle_initializer:
-      cov_xx_yy: [2.0,0.25]
-
-    camera_pose_initializer:
-      angle_resolution: 30
-
-    # =============================================
-    # map
-    # =============================================
     ll2_decomposer:
         road_marking_labels: [cross_walk, zebra_marking, line_thin, line_thick, pedestrian_marking, stop_line, road_border]
         sign_board_labels: [sign-board]
@@ -48,14 +33,6 @@
       K: 50
       R: 10
 
-    # =============================================
-    # image processing
-    # =============================================
-
-
-    # =============================================
-    # twist estimator
-    # =============================================
     twist_estimator:
       stop_vel_threshold: 0.05
       static_scale_factor: -1.0
