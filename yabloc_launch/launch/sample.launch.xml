@@ -3,7 +3,5 @@
 
     <include file="$(find-pkg-share yabloc_launch)/launch/yabloc.launch.xml">
         <arg name="standalone" value="$(var standalone)"/>
-
-        <arg name="static_scale_factor" value="-1.0" />
     </include>
 </launch>

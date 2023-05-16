@@ -2,4 +2,4 @@
   ros__parameters:
     use_sensor_qos: true
     width: 800
-    override_camera_frame_id: ""
+    override_camera_frame_id: "fake_camera_optical_link"

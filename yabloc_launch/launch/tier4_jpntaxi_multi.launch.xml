@@ -4,21 +4,11 @@
     <include file="$(find-pkg-share yabloc_launch)/launch/yabloc_multi_camera.launch.xml">
         <arg name="standalone" value="$(var standalone)"/>
 
-        <arg name="static_scale_factor" value="1.00"/>
-        <arg name="static_gyro_bias" value="10.0"/>
-
         <arg name="use_camera_0" value="true"/>
         <arg name="use_camera_1" value="true"/>
         <arg name="use_camera_2" value="false"/>
         <arg name="use_camera_3" value="false"/>
         <arg name="use_camera_4" value="false"/>
         <arg name="use_camera_5" value="false"/>
-
-        <!-- <arg name="override_camera_frame_id" value="fake_camera_optical_link"/> -->
     </include>
-
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="fake_tf1" args="--frame-id base_link                 --child-frame-id fake_sensor_kit_base_link --x 0.6 --z 1.7 --yaw 0.03" />
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="fake_tf2" args="--frame-id fake_sensor_kit_base_link --child-frame-id fake_camera_link          --x 0.8703194 --y 0.01868 --z 0.09616 --roll -0.000664 --pitch 0.0085596 --yaw -0.01503"/>
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="fake_tf3" args="--frame-id fake_camera_link          --child-frame-id fake_camera_optical_link  --roll -1.57 --yaw -1.57" />
-
 </launch>

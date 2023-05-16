@@ -1,0 +1,6 @@
+/**: 
+  ros__parameters:
+    stop_vel_threshold: 0.05
+    static_scale_factor: 1.015
+    static_gyro_bias: 10.0
+    ignore_less_than_float: false

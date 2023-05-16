@@ -1,8 +1,0 @@
-/**: 
-  ros__parameters:
-
-
-    twist_estimator:
-      stop_vel_threshold: 0.05
-      static_scale_factor: -1.0
-      static_gyro_bias: 10.0
