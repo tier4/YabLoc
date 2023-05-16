@@ -1,0 +1,6 @@
+/**:
+  ros__parameters:
+    min_segment_length:  1.5
+    max_segment_distance:  30.0
+    max_lateral_distance: 10.0
+    publish_image_with_segment_for_debug: true

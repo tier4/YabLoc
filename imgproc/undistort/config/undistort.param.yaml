@@ -1,0 +1,4 @@
+/**:
+  ros__parameters:
+    use_sensor_qos: true
+    width: 800
