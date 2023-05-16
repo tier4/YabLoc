@@ -1,0 +1,6 @@
+/**: 
+  ros__parameters:
+    acceptable_max_delay: 1.0
+    gnss_mahalanobis_distance_threshold: 40.0
+    use_ublox_msg: false
+    ignore_less_than_float: true

@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+      # graph_node selects a road surface area from around this height
+      target_height_ratio: 0.80
+
+      # graph_segment_node will pickup additional roadlike areas
+      pickup_additional_graph_segment: false

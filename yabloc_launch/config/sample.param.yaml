@@ -1,27 +1,6 @@
 /**: 
   ros__parameters:
 
-    particle_predictor:
-      static_linear_covariance: 0.04
-      static_angular_covariance: 0.006
-      resampling_interval_seconds: 1.0
-      num_of_particles: 500
-      prediction_rate: 50.0
-
-    gnss_particle_corrector:
-      acceptable_max_delay: 1.0
-      gnss_mahalanobis_distance_threshold: 20.0
-      use_ublox_msg: true
-      ignore_less_than_float: false
-
-    camera_particle_corrector:
-      acceptable_max_delay: 1.0
-      max_range: 40.0
-      gamma: 5.0
-      min_prob: 0.1
-      far_weight_gain: 0.001
-      enabled_at_first: true
-      visualize:
 
     twist_estimator:
       stop_vel_threshold: 0.05

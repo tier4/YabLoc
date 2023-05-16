@@ -1,0 +1,10 @@
+/**: 
+  ros__parameters:
+    acceptable_max_delay: 1.0
+    max_range: 40.0
+    gamma: 5.0
+    min_prob: 0.1
+    far_weight_gain: 0.001
+    enabled_at_first: true
+    visualize: false
+    image_size: 800

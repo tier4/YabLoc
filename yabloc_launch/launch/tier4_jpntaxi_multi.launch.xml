@@ -4,10 +4,6 @@
     <include file="$(find-pkg-share yabloc_launch)/launch/yabloc_multi_camera.launch.xml">
         <arg name="standalone" value="$(var standalone)"/>
 
-        <arg name="ignore_less_than_float" value="true"/>
-
-        <arg name="static_linear_covariance" value="0.04"/>
-        <arg name="static_angular_covariance" value="0.0010"/>
         <arg name="static_scale_factor" value="1.00"/>
         <arg name="static_gyro_bias" value="10.0"/>
 
@@ -18,7 +14,6 @@
         <arg name="use_camera_4" value="false"/>
         <arg name="use_camera_5" value="false"/>
 
-        <arg name="target_height_ratio" value="0.80"/>
         <!-- <arg name="override_camera_frame_id" value="fake_camera_optical_link"/> -->
     </include>
 
