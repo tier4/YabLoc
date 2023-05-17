@@ -14,5 +14,5 @@
 
       # parameters for cv::ximgproc::segmentation
       sigma: 0.5
-      k: 300
-      min_size: 100
+      k: 300.0
+      min_size: 100.0
