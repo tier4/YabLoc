@@ -3,14 +3,10 @@
     <arg name="src_info" default="/sensing/camera/traffic_light/camera_info"/>
     <arg name="resized_image" default="/sensing/camera/undistorted/image_raw/relay"/>
     <arg name="resized_info" default="/sensing/camera/undistorted/camera_info"/>
-    <arg name="override_camera_frame_id" default="" description="Value for overriding the camera's frame_id. 
-        Use when another static_tf is to be read
-        if it is blank (default) camera frame_id is not overridden."/>
 
     <!-- undistort -->
     <node name="undistort" pkg="undistort" exec="undistort_node" output="screen" args="--ros-args --log-level warn">
         <param name="use_sim_time" value="$(var use_sim_time)"/>
-        <param name="override_frame_id" value="$(var override_camera_frame_id)"/>
         <param from="$(var undistort_param_path)"/>
 
         <remap from="src_image" to="$(var src_image)"/>
