@@ -1,0 +1,19 @@
+<launch>
+    <arg name="src_image" default="/sensing/camera/traffic_light/image_raw/compressed"/>
+    <arg name="src_info" default="/sensing/camera/traffic_light/camera_info"/>
+    <arg name="resized_image" default="/sensing/camera/undistorted/image_raw/relay"/>
+    <arg name="resized_info" default="/sensing/camera/undistorted/camera_info"/>
+    <arg name="imgproc_param_path" default="$(find-pkg-share yabloc_imgproc)/config/imgproc.param.yaml"/>
+
+    <!-- undistort -->
+    <node name="imgproc" pkg="yabloc_imgproc" exec="yabloc_imgproc_node" output="screen" args="--ros-args --log-level info">
+        <param name="use_sim_time" value="$(var use_sim_time)"/>
+        <param from="$(var imgproc_param_path)"/>
+
+        <remap from="src_image" to="$(var src_image)"/>
+        <remap from="src_info" to="$(var src_info)"/>
+        <remap from="resized_image" to="$(var resized_image)"/>
+        <remap from="resized_info" to="$(var resized_info)"/>
+    </node>
+
+</launch>

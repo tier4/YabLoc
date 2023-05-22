@@ -6,7 +6,7 @@
     <arg name="input_pose" default="undistorted"/>
     <arg name="validation" default="true"/>
 
-    <include file="$(find-pkg-share yabloc_launch)/launch/impl/imgproc.launch.xml">
+    <include file="$(find-pkg-share yabloc_launch)/launch/impl/multithreaded_imgproc.launch.xml">
         <arg name="src_image" value="$(var src_image)"/>
         <arg name="src_info" value="$(var src_info)"/>
         <arg name="resized_image" value="$(var resized_image)"/>
