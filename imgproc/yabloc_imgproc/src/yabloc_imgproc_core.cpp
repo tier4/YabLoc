@@ -19,6 +19,7 @@ ImageProcessingNode::ImageProcessingNode()
 
   undistort_module_ = std::make_unique<Undistort>(this);
   lsd_module_ = std::make_unique<LineSegmentDetector>();
+  graph_module_ = std::make_unique<GraphSegment>(this);
 
   auto on_image = std::bind(&ImageProcessingNode::on_compressed_image, this, _1);
   auto on_info = std::bind(&ImageProcessingNode::on_info, this, _1);
@@ -30,6 +31,8 @@ ImageProcessingNode::ImageProcessingNode()
 
   pub_image_with_line_segments_ = create_publisher<Image>("image_with_line_segments", 10);
   pub_cloud_ = create_publisher<PointCloud2>("line_segments_cloud", 10);
+
+  pub_debug_image_ = create_publisher<Image>("segmented_image", 10);
 }
 
 void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
@@ -39,11 +42,15 @@ void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
   auto [scaled_image, scaled_info] = undistort_module_->undistort(image_msg, info_.value());
   publish_overriding_frame_id(image_msg, scaled_image, scaled_info);
 
-  //
+  // line segment detection
   const rclcpp::Time stamp = image_msg.header.stamp;
   auto [line_segments_image, line_segments_cloud] = lsd_module_->execute(scaled_image);
   common::publish_image(*pub_image_with_line_segments_, line_segments_image, stamp);
   common::publish_cloud(*pub_cloud_, line_segments_cloud, stamp);
+
+  // grpah segmentation
+  auto [segmented_image, colored_segmented_image] = graph_module_->execute(scaled_image);
+  common::publish_image(*pub_debug_image_, colored_segmented_image, image_msg.header.stamp);
 }
 
 void ImageProcessingNode::publish_overriding_frame_id(

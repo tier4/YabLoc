@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include "yabloc_imgproc/graph_segment.hpp"
 #include "yabloc_imgproc/line_segment_detector.hpp"
 #include "yabloc_imgproc/undistort.hpp"
 
@@ -40,6 +41,7 @@ private:
 
   std::unique_ptr<Undistort> undistort_module_{nullptr};
   std::unique_ptr<LineSegmentDetector> lsd_module_{nullptr};
+  std::unique_ptr<GraphSegment> graph_module_{nullptr};
 
   std::optional<CameraInfo> info_{std::nullopt};
 
@@ -49,6 +51,7 @@ private:
   rclcpp::Publisher<CameraInfo>::SharedPtr pub_info_;
   rclcpp::Publisher<Image>::SharedPtr pub_image_with_line_segments_;
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_cloud_;
+  rclcpp::Publisher<Image>::SharedPtr pub_debug_image_;
 
   void on_compressed_image(const CompressedImage image_msg);
   void on_info(const CameraInfo & info_msg) { info_ = info_msg; }
