@@ -42,6 +42,8 @@ ImageProcessingNode::ImageProcessingNode()
 
   filter_thread_ =
     std::make_shared<std::thread>(std::bind(&ImageProcessingNode::filter_thread_function, this));
+  lsd_thread_ =
+    std::make_shared<std::thread>(std::bind(&ImageProcessingNode::lsd_thread_function, this));
 }
 
 void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
@@ -51,6 +53,7 @@ void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
 
   common::Timer timer;
 
+  // (1) undistort
   auto [scaled_image, scaled_info] = undistort_module_->undistort(image_msg, info_.value());
   {
     scaled_info.header = info_->header;
@@ -58,40 +61,50 @@ void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
     publish_overriding_frame_id(image_msg, scaled_image, scaled_info);
   }
 
-  // line segment detection
-  auto [line_segments_image, line_segments_cloud] = lsd_module_->execute(scaled_image);
-  common::publish_image(*pub_image_with_line_segments_, line_segments_image, stamp);
-  common::publish_cloud(*pub_cloud_, line_segments_cloud, stamp);
-
-  // grpah segmentation
+  // (3) grpah segmentation
   auto [segmented_image, colored_segmented_image] = graph_module_->execute(scaled_image);
   common::publish_image(*pub_debug_image_, colored_segmented_image, image_msg.header.stamp);
 
   {
-    std::lock_guard<std::mutex> lock(mtx_);
+    std::lock_guard<std::mutex> lock(lsd_mutex_);
+    lsd_scaled_image_queue_.push(scaled_image);
+    lsd_cond_.notify_one();
+  }
+  {
+    std::lock_guard<std::mutex> lock(filter_mutex_);
     stamp_queue_.push(stamp);
-    line_segments_queue_.push(line_segments_cloud);
     graph_segment_queue_.push(segmented_image);
     info_queue_.push(scaled_info);
-    cond_.notify_one();
+    filter_cond_.notify_one();
   }
 
-  // // segment filter
-  // pcl::PointCloud<pcl::PointXYZLNormal> combined_edges, combined_debug_edges;
-  // cv::Mat projected_image;
-  // try {
-  //   filter_module_->set_info(scaled_info);
-  //   std::tie(combined_edges, combined_debug_edges, projected_image) =
-  //     filter_module_->execute(line_segments_cloud, segmented_image);
-  // } catch (...) {
-  //   RCLCPP_ERROR_STREAM(get_logger(), "catched error");
-  //   return;
-  // }
-  // common::publish_cloud(*pub_projected_cloud_, combined_edges, stamp);
-  // common::publish_cloud(*pub_debug_cloud_, combined_debug_edges, stamp);
-  // common::publish_image(*pub_projected_image_, projected_image, stamp);
+  RCLCPP_INFO_STREAM(get_logger(), "processing time-13: " << timer);
+}
 
-  RCLCPP_INFO_STREAM(get_logger(), "processing time-123: " << timer);
+void ImageProcessingNode::lsd_thread_function()
+{
+  while (rclcpp::ok()) {
+    cv::Mat scaled_image;
+    {
+      std::unique_lock<std::mutex> lock(lsd_mutex_);
+      lsd_cond_.wait(lock, [this] { return !lsd_scaled_image_queue_.empty(); });
+      scaled_image = lsd_scaled_image_queue_.front();
+      lsd_scaled_image_queue_.pop();
+    }
+
+    common::Timer timer;
+    // (2) line segment detection
+    auto [line_segments_image, line_segments_cloud] = lsd_module_->execute(scaled_image);
+    // common::publish_image(*pub_image_with_line_segments_, line_segments_image, stamp);
+    // common::publish_cloud(*pub_cloud_, line_segments_cloud, stamp);
+
+    {
+      std::lock_guard<std::mutex> lock(lsd_mutex_);
+      line_segments_queue_.push(line_segments_cloud);
+      filter_cond_.notify_one();
+    }
+    RCLCPP_INFO_STREAM(get_logger(), "processing time-2: " << timer);
+  }
 }
 
 void ImageProcessingNode::filter_thread_function()
@@ -103,8 +116,8 @@ void ImageProcessingNode::filter_thread_function()
     CameraInfo scaled_info;
 
     {
-      std::unique_lock<std::mutex> lock(mtx_);
-      cond_.wait(
+      std::unique_lock<std::mutex> lock(filter_mutex_);
+      filter_cond_.wait(
         lock, [this] { return !(line_segments_queue_.empty() || graph_segment_queue_.empty()); });
 
       stamp = stamp_queue_.front();
@@ -118,7 +131,7 @@ void ImageProcessingNode::filter_thread_function()
     }
     common::Timer timer;
 
-    // segment filter
+    // (4) segment filter
     pcl::PointCloud<pcl::PointXYZLNormal> combined_edges, combined_debug_edges;
     cv::Mat projected_image;
     try {
