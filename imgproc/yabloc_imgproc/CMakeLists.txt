@@ -25,6 +25,7 @@ find_package(OpenCV REQUIRED)
 set(TARGET yabloc_imgproc_node)
 ament_auto_add_executable(${TARGET}
   src/undistort.cpp
+  src/line_segment_detector.cpp
   src/yabloc_imgproc_core.cpp
   src/yabloc_imgproc_node.cpp
 )

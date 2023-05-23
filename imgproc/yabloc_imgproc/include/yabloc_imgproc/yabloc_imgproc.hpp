@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include "yabloc_imgproc/line_segment_detector.hpp"
 #include "yabloc_imgproc/undistort.hpp"
 
 #include <rclcpp/rclcpp.hpp>
@@ -20,6 +21,7 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 namespace yabloc
 {
@@ -29,21 +31,30 @@ public:
   using CompressedImage = sensor_msgs::msg::CompressedImage;
   using CameraInfo = sensor_msgs::msg::CameraInfo;
   using Image = sensor_msgs::msg::Image;
+  using PointCloud2 = sensor_msgs::msg::PointCloud2;
 
   ImageProcessingNode();
 
 private:
   const std::string override_frame_id_;
 
-  std::unique_ptr<Undistort> undistort_module_;
+  std::unique_ptr<Undistort> undistort_module_{nullptr};
+  std::unique_ptr<LineSegmentDetector> lsd_module_{nullptr};
+
   std::optional<CameraInfo> info_{std::nullopt};
 
   rclcpp::Subscription<CompressedImage>::SharedPtr sub_image_;
   rclcpp::Subscription<CameraInfo>::SharedPtr sub_info_;
   rclcpp::Publisher<Image>::SharedPtr pub_image_;
   rclcpp::Publisher<CameraInfo>::SharedPtr pub_info_;
+  rclcpp::Publisher<Image>::SharedPtr pub_image_with_line_segments_;
+  rclcpp::Publisher<PointCloud2>::SharedPtr pub_cloud_;
 
   void on_compressed_image(const CompressedImage image_msg);
   void on_info(const CameraInfo & info_msg) { info_ = info_msg; }
+
+  void publish_overriding_frame_id(
+    const CompressedImage & image_msg, const cv::Mat & scaled_image,
+    const CameraInfo & scaled_info);
 };
 }  // namespace yabloc
