@@ -31,10 +31,10 @@ ImageProcessingNode::ImageProcessingNode()
   pub_info_ = create_publisher<CameraInfo>("resized_info", 10);
   pub_image_ = create_publisher<Image>("resized_image", 10);
   // line segments
-  pub_image_with_line_segments_ = create_publisher<Image>("image_with_line_segments", 10);
-  pub_cloud_ = create_publisher<PointCloud2>("line_segments_cloud", 10);
+  // pub_image_with_line_segments_ = create_publisher<Image>("image_with_line_segments", 10);
+  // pub_cloud_ = create_publisher<PointCloud2>("line_segments_cloud", 10);
   // graph segmentation
-  pub_debug_image_ = create_publisher<Image>("segmented_image", 10);
+  // pub_debug_image_ = create_publisher<Image>("segmented_image", 10);
   // segment filter
   pub_projected_cloud_ = create_publisher<PointCloud2>("projected_line_segments_cloud", 10);
   pub_debug_cloud_ = create_publisher<PointCloud2>("debug/line_segments_cloud", 10);
@@ -44,6 +44,8 @@ ImageProcessingNode::ImageProcessingNode()
     std::make_shared<std::thread>(std::bind(&ImageProcessingNode::filter_thread_function, this));
   lsd_thread_ =
     std::make_shared<std::thread>(std::bind(&ImageProcessingNode::lsd_thread_function, this));
+  graph_thread_ =
+    std::make_shared<std::thread>(std::bind(&ImageProcessingNode::graph_thread_function, this));
 }
 
 void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
@@ -61,24 +63,52 @@ void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
     publish_overriding_frame_id(image_msg, scaled_image, scaled_info);
   }
 
-  // (3) grpah segmentation
-  auto [segmented_image, colored_segmented_image] = graph_module_->execute(scaled_image);
-  common::publish_image(*pub_debug_image_, colored_segmented_image, image_msg.header.stamp);
-
+  // TODO: synchronization
+  // Something bad happens when one node is abnormally late.
+  {
+    std::lock_guard<std::mutex> lock(graph_mutex_);
+    graph_scaled_image_queue_.push(scaled_image);
+    graph_condition_.notify_one();
+  }
   {
     std::lock_guard<std::mutex> lock(lsd_mutex_);
     lsd_scaled_image_queue_.push(scaled_image);
-    lsd_cond_.notify_one();
+    lsd_condition_.notify_one();
   }
   {
     std::lock_guard<std::mutex> lock(filter_mutex_);
     stamp_queue_.push(stamp);
-    graph_segment_queue_.push(segmented_image);
     info_queue_.push(scaled_info);
-    filter_cond_.notify_one();
+    filter_condition_.notify_one();
   }
 
-  RCLCPP_INFO_STREAM(get_logger(), "processing time-13: " << timer);
+  RCLCPP_INFO_STREAM(get_logger(), "processing time-1: " << timer);
+}
+
+void ImageProcessingNode::graph_thread_function()
+{
+  while (rclcpp::ok()) {
+    cv::Mat scaled_image;
+    {
+      std::unique_lock<std::mutex> lock(graph_mutex_);
+      graph_condition_.wait(lock, [this] { return !graph_scaled_image_queue_.empty(); });
+      scaled_image = graph_scaled_image_queue_.front();
+      graph_scaled_image_queue_.pop();
+    }
+
+    common::Timer timer;
+    // (3) grpah segmentation
+    auto [segmented_image, colored_segmented_image] = graph_module_->execute(scaled_image);
+    // common::publish_image(*pub_debug_image_, colored_segmented_image, image_msg.header.stamp);
+
+    {
+      std::lock_guard<std::mutex> lock(lsd_mutex_);
+      graph_segment_queue_.push(segmented_image);
+      filter_condition_.notify_one();
+    }
+
+    RCLCPP_INFO_STREAM(get_logger(), "processing time-3: " << timer);
+  }
 }
 
 void ImageProcessingNode::lsd_thread_function()
@@ -87,7 +117,7 @@ void ImageProcessingNode::lsd_thread_function()
     cv::Mat scaled_image;
     {
       std::unique_lock<std::mutex> lock(lsd_mutex_);
-      lsd_cond_.wait(lock, [this] { return !lsd_scaled_image_queue_.empty(); });
+      lsd_condition_.wait(lock, [this] { return !lsd_scaled_image_queue_.empty(); });
       scaled_image = lsd_scaled_image_queue_.front();
       lsd_scaled_image_queue_.pop();
     }
@@ -101,7 +131,7 @@ void ImageProcessingNode::lsd_thread_function()
     {
       std::lock_guard<std::mutex> lock(lsd_mutex_);
       line_segments_queue_.push(line_segments_cloud);
-      filter_cond_.notify_one();
+      filter_condition_.notify_one();
     }
     RCLCPP_INFO_STREAM(get_logger(), "processing time-2: " << timer);
   }
@@ -117,7 +147,7 @@ void ImageProcessingNode::filter_thread_function()
 
     {
       std::unique_lock<std::mutex> lock(filter_mutex_);
-      filter_cond_.wait(
+      filter_condition_.wait(
         lock, [this] { return !(line_segments_queue_.empty() || graph_segment_queue_.empty()); });
 
       stamp = stamp_queue_.front();

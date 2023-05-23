@@ -61,18 +61,19 @@ private:
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_debug_cloud_;
   rclcpp::Publisher<Image>::SharedPtr pub_projected_image_;
 
-  std::shared_ptr<std::thread> lsd_thread_;
-  std::shared_ptr<std::thread> filter_thread_;
-  std::mutex filter_mutex_, lsd_mutex_;
+  std::shared_ptr<std::thread> lsd_thread_, graph_thread_, filter_thread_;
+  std::mutex filter_mutex_, lsd_mutex_, graph_mutex_;
+  std::queue<cv::Mat> graph_scaled_image_queue_;
   std::queue<cv::Mat> lsd_scaled_image_queue_;
   std::queue<pcl::PointCloud<pcl::PointNormal>> line_segments_queue_;
   std::queue<cv::Mat> graph_segment_queue_;
   std::queue<rclcpp::Time> stamp_queue_;
   std::queue<CameraInfo> info_queue_;
 
-  std::condition_variable filter_cond_, lsd_cond_;
+  std::condition_variable filter_condition_, lsd_condition_, graph_condition_;
   void lsd_thread_function();
   void filter_thread_function();
+  void graph_thread_function();
 
   void on_compressed_image(const CompressedImage image_msg);
   void on_info(const CameraInfo & info_msg) { info_ = info_msg; }
