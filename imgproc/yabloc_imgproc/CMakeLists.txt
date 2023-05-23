@@ -23,7 +23,11 @@ find_package(OpenCV REQUIRED)
 # ===================================================
 # Executable
 set(TARGET yabloc_imgproc_node)
-ament_auto_add_executable(${TARGET} src/yabloc_imgproc_node.cpp)
+ament_auto_add_executable(${TARGET}
+  src/undistort.cpp
+  src/yabloc_imgproc_core.cpp
+  src/yabloc_imgproc_node.cpp
+)
 target_link_libraries(${TARGET} ${OpenCV_LIBS})
 
 # ===================================================

@@ -13,37 +13,35 @@
 // limitations under the License.
 
 #pragma once
-#include "yabloc_imgproc/undistort.hpp"
 
+#include <opencv4/opencv2/core.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
+#include <optional>
+
 namespace yabloc
 {
-class ImageProcessingNode : public rclcpp::Node
+class Undistort
 {
 public:
-  using CompressedImage = sensor_msgs::msg::CompressedImage;
   using CameraInfo = sensor_msgs::msg::CameraInfo;
-  using Image = sensor_msgs::msg::Image;
+  using CompressedImage = sensor_msgs::msg::CompressedImage;
 
-  ImageProcessingNode();
+  Undistort(rclcpp::Node * node) : output_width_(node->declare_parameter<int>("width")) {}
+
+  std::pair<cv::Mat, CameraInfo> undistort(
+    const CompressedImage & image_msg, const CameraInfo & info_msg);
 
 private:
-  const std::string override_frame_id_;
+  const int output_width_;
 
-  std::unique_ptr<Undistort> undistort_module_;
-  std::optional<CameraInfo> info_{std::nullopt};
+  std::optional<CameraInfo> scaled_info_{std::nullopt};
+  cv::Mat undistort_map_x, undistort_map_y;
 
-  rclcpp::Subscription<CompressedImage>::SharedPtr sub_image_;
-  rclcpp::Subscription<CameraInfo>::SharedPtr sub_info_;
-  rclcpp::Publisher<Image>::SharedPtr pub_image_;
-  rclcpp::Publisher<CameraInfo>::SharedPtr pub_info_;
-
-  void on_compressed_image(const CompressedImage image_msg);
-  void on_info(const CameraInfo & info_msg) { info_ = info_msg; }
+  void make_remap_lut(const CameraInfo & info_msg);
 };
 }  // namespace yabloc
