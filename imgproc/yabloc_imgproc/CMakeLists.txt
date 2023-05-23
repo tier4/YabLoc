@@ -28,6 +28,7 @@ ament_auto_add_executable(${TARGET}
   src/line_segment_detector.cpp
   src/graph_segment/similar_area_searcher.cpp
   src/graph_segment.cpp
+  src/segment_filter.cpp
   src/yabloc_imgproc_core.cpp
   src/yabloc_imgproc_node.cpp
 )
