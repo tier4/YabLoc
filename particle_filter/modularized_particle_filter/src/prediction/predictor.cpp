@@ -97,7 +97,6 @@ void Predictor::on_initial_pose(const PoseCovStamped::ConstSharedPtr initialpose
 
 void Predictor::initialize_particles(const PoseCovStamped & initialpose)
 {
-  std::cout << "KOJI!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << initialpose.pose.covariance[0] << std::endl;
   RCLCPP_INFO_STREAM(this->get_logger(), "initialize_particles");
   modularized_particle_filter_msgs::msg::ParticleArray particle_array{};
   particle_array.header = initialpose.header;
