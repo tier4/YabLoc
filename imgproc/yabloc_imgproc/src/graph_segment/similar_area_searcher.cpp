@@ -76,7 +76,8 @@ std::set<int> SimilarAreaSearcher::search(
     if (score > similarity_score_threshold_) acceptable_keys.insert(key.key);
     if (++index > 10) break;
   }
-  RCLCPP_INFO_STREAM(logger_, debug_ss.str());
+  // DEBUG:
+  // RCLCPP_INFO_STREAM(logger_, debug_ss.str());
 
   // // DEBUG: Visualilze
   // cv::Mat new_segmented = rgb_image.clone();

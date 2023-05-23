@@ -25,6 +25,9 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
+#include <queue>
+#include <thread>
+
 namespace yabloc
 {
 class ImageProcessingNode : public rclcpp::Node
@@ -57,6 +60,16 @@ private:
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_projected_cloud_;
   rclcpp::Publisher<PointCloud2>::SharedPtr pub_debug_cloud_;
   rclcpp::Publisher<Image>::SharedPtr pub_projected_image_;
+
+  std::shared_ptr<std::thread> filter_thread_;
+  std::mutex mtx_;
+  std::queue<pcl::PointCloud<pcl::PointNormal>> line_segments_queue_;
+  std::queue<cv::Mat> graph_segment_queue_;
+  std::queue<rclcpp::Time> stamp_queue_;
+  std::queue<CameraInfo> info_queue_;
+
+  std::condition_variable cond_;
+  void filter_thread_function();
 
   void on_compressed_image(const CompressedImage image_msg);
   void on_info(const CameraInfo & info_msg) { info_ = info_msg; }

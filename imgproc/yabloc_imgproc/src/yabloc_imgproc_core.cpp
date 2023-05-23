@@ -1,6 +1,7 @@
 #include "yabloc_imgproc/yabloc_imgproc.hpp"
 
 #include <yabloc_common/pub_sub.hpp>
+#include <yabloc_common/timer.hpp>
 
 #include <cv_bridge/cv_bridge.h>
 
@@ -38,12 +39,17 @@ ImageProcessingNode::ImageProcessingNode()
   pub_projected_cloud_ = create_publisher<PointCloud2>("projected_line_segments_cloud", 10);
   pub_debug_cloud_ = create_publisher<PointCloud2>("debug/line_segments_cloud", 10);
   pub_projected_image_ = create_publisher<Image>("projected_image", 10);
+
+  filter_thread_ =
+    std::make_shared<std::thread>(std::bind(&ImageProcessingNode::filter_thread_function, this));
 }
 
 void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
 {
   if (!info_.has_value()) return;
   const rclcpp::Time stamp = image_msg.header.stamp;
+
+  common::Timer timer;
 
   auto [scaled_image, scaled_info] = undistort_module_->undistort(image_msg, info_.value());
   {
@@ -61,20 +67,73 @@ void ImageProcessingNode::on_compressed_image(const CompressedImage image_msg)
   auto [segmented_image, colored_segmented_image] = graph_module_->execute(scaled_image);
   common::publish_image(*pub_debug_image_, colored_segmented_image, image_msg.header.stamp);
 
-  // segment filter
-  pcl::PointCloud<pcl::PointXYZLNormal> combined_edges, combined_debug_edges;
-  cv::Mat projected_image;
-  try {
-    filter_module_->set_info(scaled_info);
-    std::tie(combined_edges, combined_debug_edges, projected_image) =
-      filter_module_->execute(line_segments_cloud, segmented_image);
-  } catch (...) {
-    RCLCPP_ERROR_STREAM(get_logger(), "catched error");
-    return;
+  {
+    std::lock_guard<std::mutex> lock(mtx_);
+    stamp_queue_.push(stamp);
+    line_segments_queue_.push(line_segments_cloud);
+    graph_segment_queue_.push(segmented_image);
+    info_queue_.push(scaled_info);
+    cond_.notify_one();
   }
-  common::publish_cloud(*pub_projected_cloud_, combined_edges, stamp);
-  common::publish_cloud(*pub_debug_cloud_, combined_debug_edges, stamp);
-  common::publish_image(*pub_projected_image_, projected_image, stamp);
+
+  // // segment filter
+  // pcl::PointCloud<pcl::PointXYZLNormal> combined_edges, combined_debug_edges;
+  // cv::Mat projected_image;
+  // try {
+  //   filter_module_->set_info(scaled_info);
+  //   std::tie(combined_edges, combined_debug_edges, projected_image) =
+  //     filter_module_->execute(line_segments_cloud, segmented_image);
+  // } catch (...) {
+  //   RCLCPP_ERROR_STREAM(get_logger(), "catched error");
+  //   return;
+  // }
+  // common::publish_cloud(*pub_projected_cloud_, combined_edges, stamp);
+  // common::publish_cloud(*pub_debug_cloud_, combined_debug_edges, stamp);
+  // common::publish_image(*pub_projected_image_, projected_image, stamp);
+
+  RCLCPP_INFO_STREAM(get_logger(), "processing time-123: " << timer);
+}
+
+void ImageProcessingNode::filter_thread_function()
+{
+  while (rclcpp::ok()) {
+    rclcpp::Time stamp;
+    pcl::PointCloud<pcl::PointNormal> line_segments_cloud;
+    cv::Mat segmented_image;
+    CameraInfo scaled_info;
+
+    {
+      std::unique_lock<std::mutex> lock(mtx_);
+      cond_.wait(
+        lock, [this] { return !(line_segments_queue_.empty() || graph_segment_queue_.empty()); });
+
+      stamp = stamp_queue_.front();
+      line_segments_cloud = line_segments_queue_.front();
+      segmented_image = graph_segment_queue_.front();
+      scaled_info = info_queue_.front();
+      stamp_queue_.pop();
+      line_segments_queue_.pop();
+      graph_segment_queue_.pop();
+      info_queue_.pop();
+    }
+    common::Timer timer;
+
+    // segment filter
+    pcl::PointCloud<pcl::PointXYZLNormal> combined_edges, combined_debug_edges;
+    cv::Mat projected_image;
+    try {
+      filter_module_->set_info(scaled_info);
+      std::tie(combined_edges, combined_debug_edges, projected_image) =
+        filter_module_->execute(line_segments_cloud, segmented_image);
+    } catch (...) {
+      RCLCPP_ERROR_STREAM(get_logger(), "catched error");
+      return;
+    }
+    common::publish_cloud(*pub_projected_cloud_, combined_edges, stamp);
+    common::publish_cloud(*pub_debug_cloud_, combined_debug_edges, stamp);
+    common::publish_image(*pub_projected_image_, projected_image, stamp);
+    RCLCPP_INFO_STREAM(get_logger(), "processing time-4: " << timer);
+  }
 }
 
 void ImageProcessingNode::publish_overriding_frame_id(
