@@ -27,6 +27,10 @@ find_package(PCL REQUIRED COMPONENTS common kdtree)
 find_package(Sophus REQUIRED)
 
 # ===================================================
+# Download DNN model
+include(download.cmake)
+
+# ===================================================
 # Service
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Semseg.srv"
@@ -55,6 +59,10 @@ rosidl_target_interfaces(${TARGET} ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(${TARGET} ${PCL_LIBRARIES} Sophus::Sophus)
 
 # GNSS
+set(TARGET gnss_pose_initializer_node)
+ament_auto_add_executable(${TARGET}
+  src/gnss/gnss_pose_initializer_node.cpp)
+target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 
 # Semantic segmentation
 install(PROGRAMS
