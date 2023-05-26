@@ -45,7 +45,7 @@ Predictor::Predictor()
   predicted_particles_pub_ = create_publisher<ParticleArray>("predicted_particles", 10);
   pose_pub_ = create_publisher<PoseStamped>("pose", 10);
   pose_cov_pub_ = create_publisher<PoseCovStamped>("pose_with_covariance", 10);
-  marker_pub_ = create_publisher<Marker>("init/marker", 10);
+  marker_pub_ = create_publisher<Marker>("debug/init_marker", 10);
 
   // Subscribers
   using std::placeholders::_1;
@@ -315,8 +315,7 @@ void Predictor::publish_mean_pose(
   }
 }
 
-void Predictor::publish_range_marker(
-  const Eigen::Vector3f & pos, const Eigen::Vector3f & tangent)
+void Predictor::publish_range_marker(const Eigen::Vector3f & pos, const Eigen::Vector3f & tangent)
 {
   Marker msg;
   msg.type = Marker::LINE_STRIP;
@@ -349,7 +348,6 @@ void Predictor::publish_range_marker(
 
   marker_pub_->publish(msg);
 }
-
 
 Predictor::PoseCovStamped Predictor::rectify_initial_pose(
   const Eigen::Vector3f & pos, const Eigen::Vector3f & tangent,
