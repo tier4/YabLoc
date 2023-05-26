@@ -7,10 +7,9 @@
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <exec_depend>rosidl_default_runtime</exec_depend>
-  <member_of_group>rosidl_interface_packages</member_of_group>
-
+  <depend>rclpy</depend>
   <depend>rclcpp</depend>
   <depend>tf2</depend>
   <depend>std_msgs</depend>
@@ -18,14 +17,15 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>visualization_msgs</depend>
-  <depend>semseg_msgs</depend>
 
   <depend>tier4_localization_msgs</depend>
   <depend>autoware_auto_mapping_msgs</depend>
   <depend>ground_msgs</depend>
   <depend>ll2_decomposer</depend>
   <depend>yabloc_common</depend>
-  <depend>semantic_segmentation</depend>
+
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -31,6 +31,12 @@ find_package(Sophus REQUIRED)
 include(download.cmake)
 
 # ===================================================
+# Find PythonInterp
+find_package(Python COMPONENTS Interpreter Development)
+set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
+message(STATUS "PYTHON_EXECUTABLE : ${PYTHON_EXECUTABLE}")
+
+# ===================================================
 # Service
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Semseg.srv"
@@ -38,9 +44,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   std_msgs
   sensor_msgs
 )
-
-message(STATUS "build depends on ${${PROJECT_NAME}_FOUND_BUILD_DEPENDS}")
-message(STATUS "including ${${PROJECT_NAME}_FOUND_INCLUDE_DIRS}")
 
 # ===================================================
 # Executable
@@ -73,4 +76,4 @@ install(PROGRAMS
 )
 
 # ===================================================
-ament_auto_package(INSTALL_TO_SHARE config)
+ament_auto_package(INSTALL_TO_SHARE config data)
