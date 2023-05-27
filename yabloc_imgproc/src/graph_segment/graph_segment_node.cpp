@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "segment_filter/segment_filter.hpp"
+#include "yabloc_imgproc/graph_segment/graph_segment.hpp"
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<yabloc::segment_filter::SegmentFilter>());
+  rclcpp::spin(std::make_shared<yabloc::graph_segment::GraphSegment>());
   rclcpp::shutdown();
   return 0;
 }

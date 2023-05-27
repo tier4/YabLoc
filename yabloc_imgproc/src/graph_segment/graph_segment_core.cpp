@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "graph_segment/graph_segment.hpp"
-#include "graph_segment/histogram.hpp"
+#include "yabloc_imgproc/graph_segment/graph_segment.hpp"
+#include "yabloc_imgproc/graph_segment/histogram.hpp"
 
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>

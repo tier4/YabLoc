@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #pragma once
-#include "graph_segment/similar_area_searcher.hpp"
+#include "yabloc_imgproc/graph_segment/similar_area_searcher.hpp"
 
 #include <opencv4/opencv2/ximgproc/segmentation.hpp>
 #include <rclcpp/rclcpp.hpp>

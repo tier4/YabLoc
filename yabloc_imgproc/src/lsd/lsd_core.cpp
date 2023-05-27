@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "lsd/lsd.hpp"
+#include "yabloc_imgproc/lsd/lsd.hpp"
 
 #include <opencv4/opencv2/imgproc.hpp>
 #include <yabloc_common/cv_decompress.hpp>
@@ -35,7 +35,8 @@ LineSegmentDetector::LineSegmentDetector() : Node("line_detector")
   pub_image_with_line_segments_ = create_publisher<Image>("image_with_line_segments", 10);
   pub_cloud_ = create_publisher<PointCloud2>("line_segments_cloud", 10);
 
-  line_segment_detector_ = cv::createLineSegmentDetector(cv::LSD_REFINE_STD, 0.8, 0.6, 2.0, 22.5, 0, 0.7, 1024);
+  line_segment_detector_ =
+    cv::createLineSegmentDetector(cv::LSD_REFINE_STD, 0.8, 0.6, 2.0, 22.5, 0, 0.7, 1024);
 }
 
 void LineSegmentDetector::on_image(const sensor_msgs::msg::Image & msg)

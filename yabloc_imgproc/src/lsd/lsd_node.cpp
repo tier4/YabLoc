@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "lsd/lsd.hpp"
+#include "yabloc_imgproc/lsd/lsd.hpp"
 
 int main(int argc, char * argv[])
 {

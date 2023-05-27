@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "segment_filter/segment_filter.hpp"
+#include "yabloc_imgproc/segment_filter/segment_filter.hpp"
 
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/imgproc.hpp>

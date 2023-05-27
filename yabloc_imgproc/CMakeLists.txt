@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(segment_filter)
+project(yabloc_imgproc)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
@@ -28,12 +28,38 @@ find_package(PCL REQUIRED COMPONENTS common)
 
 # ===================================================
 # Executable
+# line segment detection
+set(TARGET lsd_node)
+ament_auto_add_executable(${TARGET}
+  src/lsd/lsd_node.cpp
+  src/lsd/lsd_core.cpp)
+target_include_directories(${TARGET} PUBLIC include)
+target_include_directories(${TARGET} SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(${TARGET} ${OpenCV_LIBS})
+
+# graph based segmentation
+set(TARGET graph_segment_node)
+ament_auto_add_executable(${TARGET}
+  src/graph_segment/graph_segment_node.cpp
+  src/graph_segment/graph_segment_core
+  src/graph_segment/similar_area_searcher.cpp)
+target_include_directories(${TARGET} PUBLIC include)
+target_include_directories(${TARGET} SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(${TARGET} ${OpenCV_LIBS})
+
+# segment filter
 set(TARGET segment_filter_node)
 ament_auto_add_executable(${TARGET}
-  src/segment_filter_node.cpp
-  src/segment_filter_core.cpp)
+  src/segment_filter/segment_filter_node.cpp
+  src/segment_filter/segment_filter_core.cpp)
 target_include_directories(${TARGET} PUBLIC include ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 target_link_libraries(${TARGET} ${PCL_LIBRARIES} ${OpenCV_LIBS})
+
+# undistort
+set(TARGET undistort_node)
+ament_auto_add_executable(${TARGET}
+  src/undistort/undistort_node.cpp)
+target_link_libraries(${TARGET} ${OpenCV_LIBS})
 
 # ===================================================
 ament_auto_package(INSTALL_TO_SHARE config)
