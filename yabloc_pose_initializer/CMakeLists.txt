@@ -31,10 +31,9 @@ find_package(Sophus REQUIRED)
 include(download.cmake)
 
 # ===================================================
-# Find PythonInterp
-find_package(Python COMPONENTS Interpreter Development)
-set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
-message(STATUS "PYTHON_EXECUTABLE : ${PYTHON_EXECUTABLE}")
+# Clear ${PYTHON_EXECUTABLE} defined by mrt_cmake_module
+unset(PYTHON_EXECUTABLE)
+message(STATUS "PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
 
 # ===================================================
 # Service
