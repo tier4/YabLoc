@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "lanelet2_overlay_monitor/lanelet2_overlay_monitor.hpp"
+#include "yabloc_imgproc/lanelet2_overlay/lanelet2_overlay.hpp"
 
 #include <eigen3/Eigen/StdVector>
 #include <opencv4/opencv2/calib3d.hpp>

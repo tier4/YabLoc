@@ -26,6 +26,9 @@ find_package(OpenCV REQUIRED)
 # PCL
 find_package(PCL REQUIRED COMPONENTS common)
 
+# Sophus
+find_package(Sophus REQUIRED)
+
 # ===================================================
 # Executable
 # line segment detection
@@ -60,6 +63,22 @@ set(TARGET undistort_node)
 ament_auto_add_executable(${TARGET}
   src/undistort/undistort_node.cpp)
 target_link_libraries(${TARGET} ${OpenCV_LIBS})
+
+# line_segments_overlay
+set(TARGET line_segments_overlay_node)
+ament_auto_add_executable(${TARGET}
+  src/line_segments_overlay/line_segments_overlay_core.cpp
+  src/line_segments_overlay/line_segments_overlay_node.cpp)
+target_include_directories(${TARGET} PUBLIC include ${EIGEN_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+target_link_libraries(${TARGET} Sophus::Sophus ${PCL_LIBRARIES})
+
+# lanelet2_overlay
+set(TARGET lanelet2_overlay_node)
+ament_auto_add_executable(${TARGET}
+  src/lanelet2_overlay/lanelet2_overlay_core.cpp
+  src/lanelet2_overlay/lanelet2_overlay_node.cpp)
+target_include_directories(${TARGET} PUBLIC include ${EIGEN_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+target_link_libraries(${TARGET} Sophus::Sophus ${PCL_LIBRARIES})
 
 # ===================================================
 ament_auto_package(INSTALL_TO_SHARE config)

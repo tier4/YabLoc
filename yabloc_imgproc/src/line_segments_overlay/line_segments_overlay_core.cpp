@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "line_segments_overlay_monitor/line_segments_overlay_monitor.hpp"
+#include "yabloc_imgproc/line_segments_overlay/line_segments_overlay.hpp"
 
 #include <opencv4/opencv2/core/eigen.hpp>
 #include <yabloc_common/cv_decompress.hpp>
