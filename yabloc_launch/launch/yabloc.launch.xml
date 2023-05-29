@@ -39,8 +39,7 @@
         <group>
             <push-ros-namespace namespace="initializer"/>
             <include file="$(find-pkg-share yabloc_launch)/launch/impl/initializer.launch.xml">
-                <!-- <arg name="skip_autoware_pose_initializer" value="$(var standalone)"/> -->
-                <arg name="skip_autoware_pose_initializer" value="false"/>
+                <arg name="skip_autoware_pose_initializer" value="$(var standalone)"/>
             </include>
         </group>
 
