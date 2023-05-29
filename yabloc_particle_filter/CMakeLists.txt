@@ -115,11 +115,4 @@ if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
-# ===================================================
-install(PROGRAMS
-  script/particle_array_to_marker_array.py
-  script/particle_array_to_pose_array.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-
 ament_auto_package(INSTALL_TO_SHARE config)
