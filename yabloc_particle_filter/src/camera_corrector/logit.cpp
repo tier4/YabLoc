@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "camera_particle_corrector/logit.hpp"
+#include "yabloc_particle_filter/camera_corrector/logit.hpp"
 
 #include <algorithm>
 #include <array>

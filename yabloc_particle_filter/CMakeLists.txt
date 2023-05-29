@@ -20,6 +20,9 @@ find_package(PCL REQUIRED)
 # Sophus
 find_package(Sophus REQUIRED)
 
+# glog
+find_package(glog REQUIRED)
+
 # GeographicLib
 find_package(PkgConfig)
 find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
@@ -94,6 +97,17 @@ ament_auto_add_executable(${TARGET}
 target_include_directories(${TARGET} PUBLIC include)
 target_include_directories(${TARGET} PUBLIC SYSTEM ${GeographicLib_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(${TARGET} Sophus::Sophus)
+
+# Camera corrector
+set(TARGET camera_particle_corrector_node)
+ament_auto_add_executable(${TARGET}
+  src/camera_corrector/camera_particle_corrector_node.cpp
+  src/camera_corrector/filt_lsd.cpp
+  src/camera_corrector/logit.cpp
+  src/camera_corrector/camera_particle_corrector_core.cpp)
+target_include_directories(${TARGET} PUBLIC include)
+target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+target_link_libraries(${TARGET} Sophus::Sophus ${PCL_LIBRARIES} glog::glog)
 
 # ===================================================
 # TEST

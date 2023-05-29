@@ -14,11 +14,13 @@
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>tf2_sensor_msgs</depend>
   <depend>tf2_geometry_msgs</depend>
+  <depend>libgoogle-glog-dev</depend>
 
   <depend>sophus</depend>
   <depend>yabloc_common</depend>

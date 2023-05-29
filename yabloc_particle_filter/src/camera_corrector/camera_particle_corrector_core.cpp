@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "camera_particle_corrector/camera_particle_corrector.hpp"
-#include "camera_particle_corrector/fast_cos.hpp"
-#include "camera_particle_corrector/logit.hpp"
+#include "yabloc_particle_filter/camera_corrector/camera_particle_corrector.hpp"
+#include "yabloc_particle_filter/camera_corrector/fast_cos.hpp"
+#include "yabloc_particle_filter/camera_corrector/logit.hpp"
 
 #include <opencv4/opencv2/imgproc.hpp>
 #include <yabloc_common/color.hpp>
