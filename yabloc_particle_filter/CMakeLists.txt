@@ -20,6 +20,14 @@ find_package(PCL REQUIRED)
 # Sophus
 find_package(Sophus REQUIRED)
 
+# GeographicLib
+find_package(PkgConfig)
+find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
+  PATH_SUFFIXES GeographicLib
+)
+set(GeographicLib_INCLUDE_DIRS ${GeographicLib_INCLUDE_DIR})
+find_library(GeographicLib_LIBRARIES NAMES Geographic)
+
 # ===================================================
 # Message & Service
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -60,13 +68,20 @@ ament_auto_add_executable(predictor_node
   src/prediction/predictor_node.cpp
 )
 target_link_libraries(predictor_node predictor)
-rosidl_target_interfaces(predictor_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 # Visualizer
 ament_auto_add_executable(particle_visualize
   src/common/particle_visualize_node.cpp
 )
-rosidl_target_interfaces(particle_visualize ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+# GNSS corrector
+set(TARGET gnss_particle_corrector_node)
+ament_auto_add_executable(${TARGET}
+  src/gnss_corrector/gnss_corrector_node.cpp
+  src/gnss_corrector/gnss_corrector_core.cpp)
+target_include_directories(${TARGET} PUBLIC include)
+target_include_directories(${TARGET} PUBLIC SYSTEM ${GeographicLib_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(${TARGET} Sophus::Sophus)
 
 # ===================================================
 # TEST

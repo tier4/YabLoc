@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gnss_particle_corrector/gnss_particle_corrector.hpp"
+#include "yabloc_particle_filter/gnss_corrector/gnss_particle_corrector.hpp"
 
 #include <yabloc_common/color.hpp>
 #include <yabloc_common/fix2mgrs.hpp>
