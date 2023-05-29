@@ -40,6 +40,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 # ===================================================
 # Libraries
+# correction library
 ament_auto_add_library(
   abst_corrector
   SHARED
@@ -51,6 +52,7 @@ target_include_directories(abst_corrector SYSTEM PRIVATE ${PCL_INCLUDE_DIRS})
 target_link_libraries(abst_corrector Sophus::Sophus ${PCL_LIBRARIES})
 rosidl_target_interfaces(abst_corrector ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
+# Prediction library
 ament_auto_add_library(predictor
   src/prediction/predictor.cpp
   src/prediction/resampler.cpp
@@ -60,6 +62,16 @@ ament_auto_add_library(predictor
 target_include_directories(predictor SYSTEM PRIVATE ${PCL_INCLUDE_DIRS})
 target_link_libraries(predictor Sophus::Sophus ${PCL_LIBRARIES})
 rosidl_target_interfaces(predictor ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+# Cost map Library
+ament_auto_add_library(ll2_cost_map
+  SHARED
+  src/ll2_cost_map/hierarchical_cost_map.cpp
+  src/ll2_cost_map/direct_cost_map.cpp
+)
+target_include_directories(ll2_cost_map PUBLIC include)
+target_include_directories(ll2_cost_map SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+target_link_libraries(ll2_cost_map ${PCL_LIBRARIES})
 
 # ===================================================
 # Executables
