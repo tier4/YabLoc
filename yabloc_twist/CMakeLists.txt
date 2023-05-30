@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(twist_estimator)
+project(yabloc_twist)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
@@ -32,15 +32,18 @@ set(CMAKE_NO_SYSTEM_FROM_IMPORTED FALSE)
 
 # ===================================================
 # Executable
+# twist_estimator
 set(TARGET twist_estimator_node)
-ament_auto_add_executable(${TARGET} src/twist_estimator_node.cpp src/twist_estimator_core.cpp)
+ament_auto_add_executable(${TARGET}
+  src/twist_estimator/twist_estimator_node.cpp
+  src/twist_estimator/twist_estimator_core.cpp)
 target_include_directories(${TARGET} PUBLIC include)
 target_link_libraries(${TARGET} Sophus::Sophus)
 
-set(TARGET twist_visualizer_node)
-ament_auto_add_executable(${TARGET} src/twist_visualizer_node.cpp src/twist_visualizer_core.cpp)
-target_include_directories(${TARGET} PUBLIC include)
-target_link_libraries(${TARGET} Sophus::Sophus)
+# velocity_converter
+set(TARGET velocity_report_converter_node)
+ament_auto_add_executable(${TARGET}
+  src/velocity_report_converter/velocity_report_converter_node.cpp)
 
 # ===================================================
 ament_auto_package(INSTALL_TO_SHARE config)
