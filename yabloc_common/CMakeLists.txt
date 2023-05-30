@@ -46,11 +46,22 @@ set(GeographicLib_INCLUDE_DIRS ${GeographicLib_INCLUDE_DIR})
 find_library(GeographicLib_LIBRARIES NAMES Geographic)
 
 # ===================================================
+# Message & Service
+rosidl_generate_interfaces(yabloc_common_srv
+  "srv/Ground.srv"
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
+
+# ===================================================
 # Libraries
-set(TARGET ${PROJECT_NAME}_lib)
-file(GLOB REGULATORY_ELEMENT_SOURCE src/regulatory_elements/*cpp)
-add_library(${TARGET}
-  ${REGULATORY_ELEMENT_SOURCE}
+file(GLOB REGULATORY_ELEMENT_SOURCE 3rd/regulatory_elements/lib/*cpp)
+ament_auto_add_library(ll2_util SHARED
+  ${REGULATORY_ELEMENT_SOURCE})
+target_include_directories(ll2_util PUBLIC include 3rd/regulatory_elements/include)
+
+ament_auto_add_library(${PROJECT_NAME} SHARED
   src/ublox_stamp.cpp
   src/pub_sub.cpp
   src/fix2mgrs.cpp
@@ -62,51 +73,43 @@ add_library(${TARGET}
   src/from_bin_msg.cpp
   src/transform_line_segments.cpp
   src/color.cpp)
-target_include_directories(${TARGET} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 target_include_directories(
-  ${TARGET} PRIVATE
+  ${PROJECT_NAME} PUBLIC include
+)
+
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE
   SYSTEM
   ${PCL_INCLUDE_DIRS}
   ${GeographicLib_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
-target_link_libraries(${TARGET} Geographic ${PCL_LIBRARIES} Sophus::Sophus)
-ament_target_dependencies(${TARGET} rclcpp std_msgs geometry_msgs tf2_ros sensor_msgs ublox_msgs cv_bridge pcl_conversions
-  autoware_auto_mapping_msgs)
+target_link_libraries(${PROJECT_NAME} Geographic ${PCL_LIBRARIES} Sophus::Sophus ll2_util)
 
 # ===================================================
-# Clear ${PYTHON_EXECUTABLE} defined by mrt_cmake_module
-unset(PYTHON_EXECUTABLE)
-message(STATUS "PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
+# Executables
+# ground_server
+set(TARGET ground_server_node)
+ament_auto_add_executable(${TARGET}
+  src/ground_server/ground_server_core.cpp
+  src/ground_server/ground_server_node.cpp
+  src/ground_server/polygon_operation.cpp)
+target_include_directories(${TARGET} PUBLIC include)
+target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+target_link_libraries(${TARGET} ${PCL_LIBRARIES} Sophus::Sophus glog::glog)
+rosidl_target_interfaces(${TARGET} yabloc_common_srv "rosidl_typesupport_cpp")
+
+# ll2_decomposer
+set(TARGET ll2_decomposer_node)
+ament_auto_add_executable(${TARGET}
+  src/ll2_decomposer/ll2_decomposer_core.cpp
+  src/ll2_decomposer/ll2_decomposer_node.cpp)
+target_include_directories(${TARGET} PUBLIC include)
+target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+target_link_libraries(${TARGET} ${PCL_LIBRARIES})
+rosidl_target_interfaces(${TARGET} yabloc_common_srv "rosidl_typesupport_cpp")
 
 # ===================================================
-# Message & Service
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/Ground.srv"
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
-
-install(TARGETS ${PROJECT_NAME}_lib
-  EXPORT ${PROJECT_NAME}_lib
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-install(DIRECTORY include/
-  DESTINATION "include/${PROJECT_NAME}"
-)
-
-ament_export_include_directories("include/${PROJECT_NAME}")
-ament_export_libraries(${PROJECT_NAME}_lib)
-ament_export_targets(${PROJECT_NAME}_lib)
-ament_export_dependencies(rosidl_default_runtime rclcpp std_msgs geometry_msgs tf2_ros sensor_msgs ublox_msgs cv_bridge pcl_conversions
-  autoware_auto_mapping_msgs)
 ament_export_dependencies(PCL Sophus)
-
-ament_package()
+ament_auto_package()

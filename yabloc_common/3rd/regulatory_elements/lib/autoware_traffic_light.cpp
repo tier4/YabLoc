@@ -14,7 +14,7 @@
 //
 // Authors: Ryohsuke Mitsudome
 
-#include "yabloc_common/regulatory_elements/autoware_traffic_light.hpp"
+#include "lanelet2_extension/regulatory_elements/autoware_traffic_light.hpp"
 
 #include <boost/variant.hpp>
 

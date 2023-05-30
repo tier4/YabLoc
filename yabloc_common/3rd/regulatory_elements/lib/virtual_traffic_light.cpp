@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "yabloc_common/regulatory_elements/virtual_traffic_light.hpp"
+#include "lanelet2_extension/regulatory_elements/virtual_traffic_light.hpp"
 
 #include <boost/variant.hpp>
 
