@@ -18,7 +18,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <yabloc_common/ground_plane.hpp>
-#include <yabloc_common/srv/ground.hpp>
 
 #include <autoware_auto_mapping_msgs/msg/had_map_bin.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
@@ -42,7 +41,6 @@ class GroundServer : public rclcpp::Node
 public:
   using GroundPlane = common::GroundPlane;
   using HADMapBin = autoware_auto_mapping_msgs::msg::HADMapBin;
-  using Ground = yabloc_common::srv::Ground;
 
   using Pose = geometry_msgs::msg::Pose;
   using PoseStamped = geometry_msgs::msg::PoseStamped;
@@ -61,8 +59,6 @@ private:
   const float R;
   const int K;
 
-  // Service
-  rclcpp::Service<Ground>::SharedPtr service_;
   // Subscriber
   rclcpp::Subscription<HADMapBin>::SharedPtr sub_map_;
   rclcpp::Subscription<PoseStamped>::SharedPtr sub_pose_stamped_;
@@ -88,8 +84,6 @@ private:
   void on_map(const HADMapBin & msg);
   void on_initial_pose(const PoseCovStamped & msg);
   void on_pose_stamped(const PoseStamped & msg);
-  void on_service(
-    const std::shared_ptr<Ground::Request> request, std::shared_ptr<Ground::Response> response);
 
   // Body
   GroundPlane estimate_ground(const Point & point);

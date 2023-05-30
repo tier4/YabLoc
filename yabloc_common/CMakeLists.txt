@@ -46,15 +46,6 @@ set(GeographicLib_INCLUDE_DIRS ${GeographicLib_INCLUDE_DIR})
 find_library(GeographicLib_LIBRARIES NAMES Geographic)
 
 # ===================================================
-# Message & Service
-rosidl_generate_interfaces(yabloc_common_srv
-  "srv/Ground.srv"
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
-
-# ===================================================
 # Libraries
 file(GLOB REGULATORY_ELEMENT_SOURCE 3rd/regulatory_elements/lib/*cpp)
 ament_auto_add_library(ll2_util SHARED
@@ -98,7 +89,6 @@ ament_auto_add_executable(${TARGET}
 target_include_directories(${TARGET} PUBLIC include)
 target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 target_link_libraries(${TARGET} ${PCL_LIBRARIES} Sophus::Sophus glog::glog)
-rosidl_target_interfaces(${TARGET} yabloc_common_srv "rosidl_typesupport_cpp")
 
 # ll2_decomposer
 set(TARGET ll2_decomposer_node)
@@ -108,8 +98,8 @@ ament_auto_add_executable(${TARGET}
 target_include_directories(${TARGET} PUBLIC include)
 target_include_directories(${TARGET} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 target_link_libraries(${TARGET} ${PCL_LIBRARIES})
-rosidl_target_interfaces(${TARGET} yabloc_common_srv "rosidl_typesupport_cpp")
 
 # ===================================================
 ament_export_dependencies(PCL Sophus)
-ament_auto_package()
+
+ament_auto_package(INSTALL_TO_SHARE config)
