@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "lanelet2_extension/regulatory_elements/road_marking.hpp"
+#include "yabloc_common/regulatory_elements/road_marking.hpp"
 
 #include <boost/variant.hpp>
 

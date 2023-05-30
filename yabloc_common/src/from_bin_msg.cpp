@@ -14,7 +14,7 @@
 
 #include "yabloc_common/from_bin_msg.hpp"
 
-#include <lanelet2_extension/regulatory_elements/detection_area.hpp>
+#include "yabloc_common/regulatory_elements/detection_area.hpp"
 
 #include <boost/archive/binary_iarchive.hpp>
 
