@@ -63,7 +63,7 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_E
 ```shell
 # terminal 1
 source install/setup.bash
-ros2 launch yabloc_launch sample_launch.xml
+ros2 launch yabloc_launch sample.launch.xml
 
 # terminal 2
 source install/setup.bash
