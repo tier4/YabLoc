@@ -1,4 +1,13 @@
+# This repository is archived
+
+**YabLoc was merged into Autoware on June 22, 2023. For more details, please refer to [this PR](https://github.com/autowarefoundation/autoware.universe/pull/3946). 
+Future development will be conducted on [autoware.universe](https://github.com/autowarefoundation/autoware.universe).**
+
+**If you would like to perform a standalone verification of YabLoc, the "Quick Start Demo" provided in this README is useful.
+If you are interested in running YabLoc as a localization method in Autoware, the sample data provided in [this PR](https://github.com/autowarefoundation/autoware.universe/pull/3946) can be handy.**
 # YabLoc
+
+## Overview
 
 **YabLoc** is vision-baed localization with vector map. [https://youtu.be/Eaf6r_BNFfk](https://youtu.be/Eaf6r_BNFfk)
 
@@ -16,13 +25,12 @@ Yabloc has been developed as a new localization stack for [Autoware](https://git
 **NOTE:** Currently, this software is assumed to be built in a separate workspace in order not to contaminate the autoware workspace.
 Someday this will be located in the workspace where Autoware blongs. The following submodules will be removed at the time.
 
-Branches
+#### Branches
 
 * [main](https://github.com/tier4/YabLoc/tree/main) is a branch to work with minimal dependence on autoware.
   * If you want to try the YabLoc demo, please use `main` branch.
-* [autoware(under construction)](https://github.com/tier4/YabLoc/tree/autoware) is a branch made to run as part of Autoware.
 
-Submodules
+#### Submodules
 
 * [external/autoware_auto_msgs](https://github.com/tier4/autoware_auto_msgs)
 * [external/autoware_msgs](https://github.com/autowarefoundation/autoware_msgs.git)
@@ -77,68 +85,6 @@ ros2 bag play awsim_yabloc_rosbag_sample_0.db3 -s sqlite3
 If YabLoc runs successfully, you will see a screen like the following.
 
 <img src="docs/quick_start_demo_screen.png" width="600">
-
-
-## Demo with Autoware
-
-**NOTE:** `use_sim_time` is TRUE as default.
-
-### Run with rosbag 
-
-<details><summary>click to open </summary><div>
-
-**This is a procedure for self-localization, planning/control components of Autoware would not work in this way.**
-
-![how_to_launch_with_rosbag](docs/how_to_launch_with_rosbag.drawio.svg)
-
-```shell
-ros2 launch yabloc_launch sample_launch.xml
-ros2 launch yabloc_launch rviz.launch.xml
-ros2 launch autoware_launch logging_simulator.launch.xml \
-  system:=false \
-  localizaton:=false \
-  sensing:=false \
-  perception:=false \
-  planning:=false \
-  control:=false \
-  rviz:=false \
-  vehicle_model:=sample_vehicle \ 
-  sensor_model:=sample_sensor_kit \
-  vehicle_id:=default \
-  map_path:=$HOME/Maps/odaiba
-
-ros2 bag play your_rosbag --clock 100
-```
-
-</div></details>
-
-### Run in real world
-
-<details><summary>click to open </summary><div>
-
-**This is a procedure for self-localization, planning/control components of Autoware would not work in this way.**
-
-![how_to_launch_with_rosbag](docs/how_to_launch_in_real.drawio.svg)
-
-```shell
-ros2 launch yabloc_launch sample_launch.xml use_sim_time:=false
-ros2 launch yabloc_launch rviz.launch.xml
-ros2 launch autoware_launch autoware.launch.xml \
-  rviz:=false
-```
-
-</div></details>
-
-### Run with [AWSIM](https://github.com/tier4/AWSIM) <ins>(UNDER CONSTRACTION)</ins>
-
-<details><summary>click to open </summary><div>
-
-**You have to change autoware.universe branch.**
-
-```shell
-```
-
-</div></details>
 
 ## How to set initial pose
 
